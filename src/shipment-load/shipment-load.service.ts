@@ -41,9 +41,17 @@ export class ShipmentLoadService {
   }
 
 
-  async findAllShipments() {
+  async findAllShipmentsInitial() {
     const cargas = await this.shipmentLoadRepository.find();
     return cargas;
+  }
+
+  async findAllShipments() {
+    const shipments = await this.shipmentLoadRepository.find();
+    return shipments.map(shipment => {
+      const { initialLoad, ...rest } = shipment;
+      return rest;
+    });
   }
 
 

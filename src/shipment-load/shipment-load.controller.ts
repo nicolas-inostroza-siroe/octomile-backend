@@ -13,10 +13,17 @@ export class ShipmentLoadController {
     return this.shipmentLoadService.createInitialLoad(createInitialShipmentDto);
   }
 
+  @Get('all-shipments-initial')
+  findAllShipmentInitia() {
+    return this.shipmentLoadService.findAllShipmentsInitial();
+  }
+
+
   @Get('all-shipments')
-  findAllShipment() {
+  findAllShitment() {
     return this.shipmentLoadService.findAllShipments();
   }
+
 
 
 }
