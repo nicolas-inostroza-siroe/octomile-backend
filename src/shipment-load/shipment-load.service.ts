@@ -43,7 +43,7 @@ export class ShipmentLoadService {
 
   async findAllShipmentsInitial() {
     const cargas = await this.shipmentLoadRepository.find();
-    return cargas.map(carga => carga.initialLoad);
+    return cargas;
   }
 
   async findAllShipments() {
