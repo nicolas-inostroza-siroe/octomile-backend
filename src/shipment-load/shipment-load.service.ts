@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { CreateInitialShipmentDto } from './dto';
+import { CreateInitialShipmentDto, CreateUpdateInitialUpdateDto } from './dto';
 import { Repository } from 'typeorm';
-import { InitialLoadEntity, ShipmentLoadEntity } from './entities';
+import { InitialLoadEntity, ShipmentLoadEntity, ShipmentUpdateEntity } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UpdateShipmentLoadDto } from './dto/update-shipment-load.dto';
 
 @Injectable()
 export class ShipmentLoadService {
@@ -14,6 +15,8 @@ export class ShipmentLoadService {
     private readonly initialLoadRepository: Repository<InitialLoadEntity>,
     @InjectRepository(ShipmentLoadEntity)
     private readonly shipmentLoadRepository: Repository<ShipmentLoadEntity>,
+    @InjectRepository(ShipmentUpdateEntity)
+    private readonly shipmentUpdateRepository: Repository<ShipmentUpdateEntity>
   ) { }
 
 
@@ -21,7 +24,6 @@ export class ShipmentLoadService {
 
     const { client, excel } = createInitialShipmentDto;
 
-    console.log({ excel });
     try {
 
       const carga = this.shipmentLoadRepository.create({
@@ -37,7 +39,6 @@ export class ShipmentLoadService {
     } catch (error) {
       this.handleExceptions(error);
     }
-    return { message: 'Carga exitosa', client };
   }
 
 
@@ -55,9 +56,36 @@ export class ShipmentLoadService {
   }
 
 
+  async fillAllShipmentUpdate() {
+    const shipmentsUpdate = await this.shipmentUpdateRepository.find();
+    return shipmentsUpdate;
+  }
+
+
+
+  async initialLoadUpdate(createUpdateInitialUpdateDto: CreateUpdateInitialUpdateDto) {
+
+    const { client, excel } = createUpdateInitialUpdateDto;
+
+    try {
+
+      let cargas = [];
+
+      excel.forEach(element => {
+        const item = this.shipmentUpdateRepository.create({ ...element });
+        cargas.push(this.shipmentUpdateRepository.save(item));
+      })
+      await Promise.all(cargas);
+      return { message: 'Carga exitosa', client };
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+
+
+  }
+
 
   private handleExceptions(error: any) {
-
     if (error.code === "23505")
       throw new BadRequestException(error.detail);
 

@@ -16,7 +16,7 @@ export class ShipmentUpdateEntity {
     masterTransportista: string;
 
     @Column('varchar')
-    masterNro: "369-92767496";
+    masterNro: string;
 
     @Column('int')
     masterFecha: number;
@@ -45,8 +45,8 @@ export class ShipmentUpdateEntity {
     @Column('varchar')
     locacionRecepcion: string;
 
-    @Column('int')
-    hawb: number;
+    @Column('varchar')
+    hawb: string;
 
     @Column('int')
     fechaIngreso: number;
