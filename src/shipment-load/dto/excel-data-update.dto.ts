@@ -20,9 +20,9 @@ export class ExcelDataUpdateDto {
     @MinLength(1)
     masterNro: string;
 
-    @IsNumber()
-    @IsPositive()
-    masterFecha: number;
+    @IsString()
+    @MinLength(1)
+    masterFecha: string;
 
     @IsNumber()
     @IsPositive()
@@ -32,9 +32,9 @@ export class ExcelDataUpdateDto {
     @IsPositive()
     viaTransporte: number;
 
-    @IsNumber()
-    @IsPositive()
-    fechaArribo: number;
+    @IsString()
+    @MinLength(1)
+    fechaArribo: string;
 
     @Transform(({ value }) => parseFloat(`${value}`.replace(',', '.')))
     @IsNumber({}, { message: 'declaredValueUSD must be a number' })
@@ -61,9 +61,9 @@ export class ExcelDataUpdateDto {
     @MinLength(1)
     hawb: string;
 
-    @IsNumber()
-    @IsPositive()
-    fechaIngreso: number;
+    @IsString()
+    @MinLength(1)
+    fechaIngreso: string;
 
     @IsString()
     @MinLength(1)

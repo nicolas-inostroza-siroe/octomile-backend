@@ -18,8 +18,8 @@ export class ShipmentUpdateEntity {
     @Column('varchar')
     masterNro: string;
 
-    @Column('int')
-    masterFecha: number;
+    @Column('varchar')
+    masterFecha: string;
 
     @Column('int')
     nroManifiesto: number;
@@ -27,8 +27,8 @@ export class ShipmentUpdateEntity {
     @Column('int')
     viaTransporte: number;
 
-    @Column('int')
-    fechaArribo: number;
+    @Column('varchar')
+    fechaArribo: string;
 
     @Column('float')
     pesoDeclarado: number;
@@ -48,8 +48,8 @@ export class ShipmentUpdateEntity {
     @Column('varchar')
     hawb: string;
 
-    @Column('int')
-    fechaIngreso: number;
+    @Column('varchar')
+    fechaIngreso: string;
 
     @Column('varchar')
     codigoBarra: string;
