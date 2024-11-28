@@ -30,7 +30,7 @@ export class ShipmentLoadController {
     return this.shipmentLoadService.findAllShipments();
   }
 
-  @Get('all-shipment-update')
+  @Get('all-shipments-update')
   fillAllShipmentUpdate() {
     return this.shipmentLoadService.fillAllShipmentUpdate();
   }
