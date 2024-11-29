@@ -1,6 +1,7 @@
 
 import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn, BeforeUpdate } from "typeorm";
 import { InitialLoadEntity } from "./initial-load.entity";
+import { ShipmentUpdateEntity } from './shipment-update.entity';
 
 
 @Entity('shipment_load')
@@ -44,7 +45,15 @@ export class ShipmentLoadEntity {
         (initialLoad) => initialLoad.shipmentLoad,
         { cascade: true, eager: true }
     )
-    initialLoad: InitialLoadEntity[]
+    initialLoad: InitialLoadEntity[];
+
+
+    @OneToMany(
+        () => ShipmentUpdateEntity,
+        (shipmentUpdateEntity) => shipmentUpdateEntity.bAGID,
+        { cascade: true, eager: true }
+    )
+    updateLoadId: string;
 
 
     @BeforeInsert()
