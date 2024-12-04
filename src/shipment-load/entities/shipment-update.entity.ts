@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ShipmentLoadEntity } from "./shipment-load.entity";
 
 @Entity('shipment_update')
@@ -7,7 +7,9 @@ export class ShipmentUpdateEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('int')
+    @Column('int', {
+        unique: true,
+    })
     idSistema: number;
 
     @Column('varchar')
@@ -103,9 +105,9 @@ export class ShipmentUpdateEntity {
     // @Column('varchar')
     @ManyToOne(
         () => ShipmentLoadEntity,
-        (shipmentLoad) => shipmentLoad.updateLoadId
+        (shipmentLoad) => shipmentLoad.folio
     )
-    bAGID: string;
+    initialUpdate: string;
 
 
 }

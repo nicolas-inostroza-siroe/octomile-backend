@@ -13,12 +13,18 @@ export class ShipmentLoadController {
     return this.shipmentLoadService.createInitialLoad(createInitialShipmentDto);
   }
 
-  @Post('initial-load-update')
+  @Post('shipment-update')
   initialLoadUpdate(
     @Body() createUpdateInitialUpdateDto: CreateUpdateInitialUpdateDto,
   ) {
     return this.shipmentLoadService.initialLoadUpdate(createUpdateInitialUpdateDto);
   }
+
+  @Get('shipment/:folio')
+  findAll(@Param('folio') folio: string) {
+    return this.shipmentLoadService.findShipmentLoadByFolio(folio);
+  }
+
 
   @Get('all-shipments-initial')
   findAllShipmentInitia() {

@@ -36,7 +36,6 @@ export class ShipmentLoadEntity {
 
     @Column('varchar', {
         name: 'cliente',
-        unique: true
     })
     cliente: string
 
@@ -50,10 +49,10 @@ export class ShipmentLoadEntity {
 
     @OneToMany(
         () => ShipmentUpdateEntity,
-        (shipmentUpdateEntity) => shipmentUpdateEntity.bAGID,
+        (shipmentUpdateEntity) => shipmentUpdateEntity.initialUpdate,
         { cascade: true, eager: true }
     )
-    updateLoadId: string;
+    updateLoad: ShipmentUpdateEntity[];
 
 
     @BeforeInsert()
