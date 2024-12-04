@@ -105,9 +105,10 @@ export class ShipmentUpdateEntity {
     // @Column('varchar')
     @ManyToOne(
         () => ShipmentLoadEntity,
-        (shipmentLoad) => shipmentLoad.folio
+        (shipmentLoad) => shipmentLoad.updateLoad,
+        { eager: false }
     )
-    initialUpdate: string;
+    initialUpdate: ShipmentLoadEntity;
 
 
 }

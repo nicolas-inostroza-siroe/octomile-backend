@@ -83,7 +83,7 @@ export class InitialLoadEntity {
 
     @ManyToOne(
         () => ShipmentLoadEntity,
-        (shipmentLoad) => shipmentLoad.folio
+        (shipmentLoad) => shipmentLoad.initialLoad
     )
-    shipmentLoad: string
+    shipmentLoad: ShipmentLoadEntity
 }

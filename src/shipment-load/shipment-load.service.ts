@@ -3,6 +3,7 @@ import { CreateInitialShipmentDto, CreateUpdateInitialUpdateDto } from './dto';
 import { Repository } from 'typeorm';
 import { InitialLoadEntity, ShipmentLoadEntity, ShipmentUpdateEntity } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class ShipmentLoadService {
@@ -68,7 +69,10 @@ export class ShipmentLoadService {
       throw new BadRequestException(`There are repeated id System`);
 
     try {
-      const shipment = await this.shipmentLoadRepository.findOneBy({ folio: idFolio });
+      const shipment = await this.shipmentLoadRepository.findOne({
+        where: { folio: idFolio },
+        relations: { updateLoad: true }
+      });
 
       if (!shipment) throw new NotFoundException(`Folio ${idFolio} not found`);
 
@@ -84,6 +88,7 @@ export class ShipmentLoadService {
 
       return { message: 'Carga exitosa', client, folio: idFolio };
     } catch (error) {
+      console.log(error);
       this.handleExceptions(error);
     }
 
@@ -105,24 +110,61 @@ export class ShipmentLoadService {
 
   }
 
+  async findAllShipmentsInitial(paginationDto: PaginationDto) {
 
-  async findAllShipmentsInitial() {
-    const cargas = await this.shipmentLoadRepository.find();
-    return cargas;
-  }
-
-  async findAllShipments() {
-    const shipments = await this.shipmentLoadRepository.find();
-    return shipments.map(shipment => {
-      const { ...rest } = shipment;
-      return rest;
+    const { limit = 10, offset = 0 } = paginationDto;
+    const cargas = await this.initialLoadRepository.find({
+      take: limit,
+      skip: offset,
     });
+    return { message: 'all initial shipments uploaded', code: HttpStatus.OK, shipments: cargas }
+  }
+
+  async findAllShipments(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    const shipments = await this.shipmentLoadRepository.find({
+      take: limit,
+      skip: offset,
+    });
+    return { message: 'all shipments uploaded', code: HttpStatus.OK, shipments: shipments }
   }
 
 
-  async fillAllShipmentUpdate() {
-    const shipmentsUpdate = await this.shipmentUpdateRepository.find();
-    return shipmentsUpdate;
+  async fillAllShipmentUpdate(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    const shipmentsUpdate = await this.shipmentUpdateRepository.find({
+      take: limit,
+      skip: offset,
+    });
+    return { message: 'all update shipments uploaded', code: HttpStatus.OK, shipmentsUpdate: shipmentsUpdate }
+  }
+
+  async findAllShipmentUpdateByFolio(folio: string) {
+
+    const shipment = await this.shipmentLoadRepository.findOne({
+      where: { folio },
+      select: { id: true, folio: true, cliente: true, updateLoad: true },
+      relations: { updateLoad: true, },
+    });
+
+    if (!shipment) throw new NotFoundException(`Folio ${shipment.folio} is not found`);
+
+    return { message: 'ok', code: HttpStatus.OK, shipmentsUpdate: shipment }
+
+  }
+
+  async findAllShipmentInitialByFolio(folio: string) {
+
+    const shipment = await this.shipmentLoadRepository.findOne({
+      where: { folio },
+      select: { id: true, folio: true, cliente: true, initialLoad: true },
+      relations: { initialLoad: true, },
+    });
+
+    if (!shipment) throw new NotFoundException(`Folio ${shipment.folio} is not found`);
+
+    return { message: 'ok', code: HttpStatus.OK, shipmentInitial: shipment }
+
   }
 
 
@@ -130,12 +172,11 @@ export class ShipmentLoadService {
     if (error.code === "23505")
       throw new BadRequestException(error.detail);
 
-
     if (error.status === HttpStatus.NOT_FOUND)
-      throw new BadRequestException(error.response);
+      throw new NotFoundException(error.response);
 
     if (error.status = HttpStatus.CONFLICT)
-      throw new BadRequestException(error.response);
+      throw new ConflictException(error.response);
 
 
     this.logger.error(error);

@@ -42,15 +42,15 @@ export class ShipmentLoadEntity {
     @OneToMany(
         () => InitialLoadEntity,
         (initialLoad) => initialLoad.shipmentLoad,
-        { cascade: true, eager: true }
+        { cascade: true, eager: false }
     )
     initialLoad: InitialLoadEntity[];
 
 
     @OneToMany(
         () => ShipmentUpdateEntity,
-        (shipmentUpdateEntity) => shipmentUpdateEntity.initialUpdate,
-        { cascade: true, eager: true }
+        (shipmentUpdate) => shipmentUpdate.initialUpdate,
+        { cascade: true, eager: false }
     )
     updateLoad: ShipmentUpdateEntity[];
 
