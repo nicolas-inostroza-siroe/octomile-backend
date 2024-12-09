@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShipmentLoadModule } from './shipment-load/shipment-load.module';
+import { SortingModule } from './sorting/sorting.module';
 
 
 
@@ -21,6 +22,8 @@ import { ShipmentLoadModule } from './shipment-load/shipment-load.module';
     }),
 
     ShipmentLoadModule,
+
+    SortingModule,
   ],
   controllers: [],
   providers: [],

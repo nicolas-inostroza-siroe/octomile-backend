@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { ShipmentLoadEntity } from "./shipment-load.entity";
 
 @Entity('shipment_update')
 export class ShipmentUpdateEntity {
@@ -6,7 +7,9 @@ export class ShipmentUpdateEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('int')
+    @Column('int', {
+        unique: true,
+    })
     idSistema: number;
 
     @Column('varchar')
@@ -99,8 +102,13 @@ export class ShipmentUpdateEntity {
     @Column('varchar')
     idExterno: string;
 
-    @Column('varchar')
-    bAGID: string;
+    // @Column('varchar')
+    @ManyToOne(
+        () => ShipmentLoadEntity,
+        (shipmentLoad) => shipmentLoad.updateLoad,
+        { eager: false }
+    )
+    initialUpdate: ShipmentLoadEntity;
 
 
 }

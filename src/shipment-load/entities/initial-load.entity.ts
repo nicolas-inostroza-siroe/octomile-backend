@@ -8,13 +8,17 @@ export class InitialLoadEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('varchar')
+    @Column('varchar', {
+        unique: true
+    })
     trackingID: number;
 
     @Column('int')
     consecutive: number;
 
-    @Column('varchar')
+    @Column('varchar', {
+        unique: true
+    })
     carrierReferenceID: string;
 
     @Column('varchar')
@@ -81,5 +85,5 @@ export class InitialLoadEntity {
         () => ShipmentLoadEntity,
         (shipmentLoad) => shipmentLoad.initialLoad
     )
-    shipmentLoad: string
+    shipmentLoad: ShipmentLoadEntity
 }
