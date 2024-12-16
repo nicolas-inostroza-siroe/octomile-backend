@@ -81,6 +81,16 @@ export class InitialLoadEntity {
     @Column('varchar')
     bagId: string;
 
+    @Column('bool', {
+        default: false
+    })
+    isConfirm: boolean;
+
+    @Column('varchar', {
+        default: '0000',
+    })
+    statusCode: string
+
     @ManyToOne(
         () => ShipmentLoadEntity,
         (shipmentLoad) => shipmentLoad.initialLoad

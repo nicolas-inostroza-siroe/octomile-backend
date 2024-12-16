@@ -102,6 +102,16 @@ export class ShipmentUpdateEntity {
     @Column('varchar')
     idExterno: string;
 
+    @Column('bool', {
+        default: false
+    })
+    isConfirm: boolean;
+
+    @Column('varchar', {
+        default: '0000',
+    })
+    statusCode: string
+
     // @Column('varchar')
     @ManyToOne(
         () => ShipmentLoadEntity,

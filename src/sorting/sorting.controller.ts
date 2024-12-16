@@ -1,34 +1,35 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { SortingService } from './sorting.service';
-import { CreateSortingDto } from './dto/create-sorting.dto';
-import { UpdateSortingDto } from './dto/update-sorting.dto';
+import { ConfirmShiptmentDto, RequestShipmentDto, UpdateStatusShipmentDto } from './dto';
+
 
 @Controller('sorting')
 export class SortingController {
-  constructor(private readonly sortingService: SortingService) {}
+  constructor(private readonly sortingService: SortingService) { }
 
-  @Post()
-  create(@Body() createSortingDto: CreateSortingDto) {
-    return this.sortingService.create(createSortingDto);
+  @Post('confirmation')
+  async confirmShipment(@Body() confirmShiptmentDto: ConfirmShiptmentDto) {
+    return await this.sortingService.confirmShiptment(confirmShiptmentDto)
   }
 
-  @Get()
-  findAll() {
-    return this.sortingService.findAll();
+  @Post('request')
+  async requestData(@Body() requestShipmentDto: RequestShipmentDto) {
+    return await this.sortingService.requestDataShiptmet(requestShipmentDto)
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sortingService.findOne(+id);
+  @Post('update-status')
+  async updateLoadStatus(@Body() updateStatusShipmentDto: UpdateStatusShipmentDto) {
+    return await this.sortingService.updateStatus(updateStatusShipmentDto)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSortingDto: UpdateSortingDto) {
-    return this.sortingService.update(+id, updateSortingDto);
+  //Consultar sobre el evento 4
+
+  @Post('upload-status')
+  async uploadShipmentStatus(@Body() updateStatusShipment: UpdateStatusShipmentDto) {
+    return await this.sortingService.uploadStatusByCode(updateStatusShipment);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sortingService.remove(+id);
-  }
+
+
+
 }
