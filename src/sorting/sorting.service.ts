@@ -1,69 +1,52 @@
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfirmShiptmentDto, RequestShipmentDto, UpdateStatusShipmentDto } from './dto';
+import { ConfirmShiptmentDto, RequestShipmentDto, UpdateStatusShipmentDto, UploadStatusDto } from './dto';
 import { SenhafferApiService } from 'src/senhaffer-api/senhaffer-api.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ShipmentLoadEntity } from 'src/shipment-load/entities';
-import { Repository } from 'typeorm';
-import { catchError, lastValueFrom } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
+import { ShipmentLoadService } from '../shipment-load/shipment-load.service';
+
 
 
 @Injectable()
 export class SortingService {
 
     constructor(
-        @InjectRepository(ShipmentLoadEntity)
-        private readonly shipmentLoadRepository: Repository<ShipmentLoadEntity>,
         private readonly senhafferApiService: SenhafferApiService,
+        private readonly shipmentLoadService: ShipmentLoadService,
     ) { }
 
 
     async confirmShiptment(confirmShiptmentDto: ConfirmShiptmentDto) {
         const { hawbs, mawb } = await lastValueFrom(this.senhafferApiService.confirmShipmentsBySenhaffer(confirmShiptmentDto));
 
-        const shipment = await this.shipmentLoadRepository.findOne({
-            where: { folio: mawb },
-            relations: { initialLoad: true, updateLoad: true }
-        });
+        const { shipment } = await this.shipmentLoadService.findAllShipmentLoadByFolio(mawb);
 
         if (!shipment) throw new NotFoundException(`shipment with ${mawb} not found`);
 
         const orderReadys = [];
 
         hawbs.forEach(order => {
-            shipment.initialLoad = shipment.initialLoad.map(initialLoad => {
-                if (initialLoad.trackingID === +order) {
-                    initialLoad.isConfirm = true
-                    orderReadys.push(initialLoad);
+            shipment.shipmentLoad = shipment.shipmentLoad.map(load => {
+                if (load.idSistema === parseInt(order)) {
+                    console.log('salta');
+                    load.isConfirm = true;
+                    orderReadys.push(load);
                 }
-                return initialLoad;
-            });
-
-            shipment.updateLoad = shipment.updateLoad.map(updateLoad => {
-                if (updateLoad.idSistema === +order) {
-                    updateLoad.isConfirm = true;
-                    orderReadys.push(updateLoad);
-                }
-                return updateLoad;
+                return load;
             });
         });
-
-        await this.shipmentLoadRepository.save(shipment);
-
+        shipment.lastUpdateDate = new Date();
+        await this.shipmentLoadService.saveShipment(shipment);
+        // await this.shipmentLoadService.updateShipment(mawb, shipment)
         return { message: 'shipment confirmed', code: HttpStatus.OK, orderReadys };
-
     }
 
-    async requestDataShiptmet(requestShipmentDto: RequestShipmentDto) {
+    async requestDataShipment(requestShipmentDto: RequestShipmentDto) {
         const { mawb } = requestShipmentDto;
-        const shipment = await this.shipmentLoadRepository.findOne({
-            where: { folio: mawb },
-            relations: { initialLoad: true, updateLoad: true }
-        });
+        const { shipment } = await this.shipmentLoadService.findAllShipmentLoadByFolio(mawb);
 
         if (!shipment) throw new NotFoundException(`shipment with ${mawb} not found`);
 
-        const cargas = [shipment.initialLoad.filter(initial => initial.isConfirm == true), shipment.updateLoad.filter(update => update.isConfirm == true)];
-
+        const cargas = [shipment.shipmentLoad.filter(initial => initial.isConfirm == true)];
         if (cargas.length === 0) throw new BadRequestException(`shipments with ${mawb} loads not confirm yet`)
 
         return { message: 'shipment confirmed', code: HttpStatus.OK, idGuiaMaestra: mawb, cargas };
@@ -72,26 +55,14 @@ export class SortingService {
 
     async updateStatus(updateStatusShipmentDto: UpdateStatusShipmentDto) {
         const { mawb, shipmentUpdate } = updateStatusShipmentDto;
-        const shipment = await this.shipmentLoadRepository.findOne({
-            where: { folio: mawb },
-            relations: { initialLoad: true, updateLoad: true }
-        });
+        const { shipment } = await this.shipmentLoadService.findAllShipmentLoadByFolio(mawb);
 
         if (!shipment) throw new NotFoundException(`shipment with ${mawb} not found`);
 
         const orderReadys = [];
 
         shipmentUpdate.forEach(updateLoad => {
-
-            shipment.initialLoad = shipment.initialLoad.map(load => {
-                if (load.trackingID === parseInt(updateLoad.statusCode)) {
-                    load.statusCode = updateLoad.statusCode;
-                    orderReadys.push(load);
-                }
-                return load;
-            });
-
-            shipment.updateLoad = shipment.updateLoad.map(load => {
+            shipment.shipmentLoad = shipment.shipmentLoad.map(load => {
                 if (load.idSistema === parseInt(updateLoad.statusCode)) {
                     updateLoad.statusCode = updateLoad.statusCode;
                     orderReadys.push(updateLoad);
@@ -99,12 +70,19 @@ export class SortingService {
                 return load;
             });
         });
-        await this.shipmentLoadRepository.save(shipment);
+        await this.shipmentLoadService.saveShipment(shipment);
 
         return { message: 'shipment update', code: HttpStatus.OK, orderReadys };
     }
 
-    async uploadStatusByCode(updateStatusShipment: UpdateStatusShipmentDto) {
+    async uploadStatus(uploadStatusDto: UploadStatusDto) {
+        const { mawb, status, hawb } = uploadStatusDto;
+        const { shipment } = await this.shipmentLoadService.findAllShipmentLoadByFolio(mawb);
+
+        if (!shipment) throw new NotFoundException(`shipment with ${mawb} not found`);
+
+        const hawbsUpdate = await lastValueFrom(this.senhafferApiService.uploadStatusLoadByShenhaffer(hawb, status));
+
 
     }
 

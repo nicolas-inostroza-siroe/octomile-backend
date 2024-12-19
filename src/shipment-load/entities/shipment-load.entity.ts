@@ -1,7 +1,5 @@
-
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn, BeforeUpdate } from "typeorm";
-import { InitialLoadEntity } from "./initial-load.entity";
-import { ShipmentUpdateEntity } from './shipment-update.entity';
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { ShipmentMasterEntity } from "./shipment-master.entity";
 
 
 @Entity('shipment_load')
@@ -10,59 +8,119 @@ export class ShipmentLoadEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('date', {
-        name: 'initial_load_date',
+    @Column('int', {
+        unique: true,
     })
-    initialLoadDate: Date;
+    idSistema: number;
 
-    @Column('date', {
-        name: 'last_update_date',
-        nullable: true
-    })
-    lastUpdateDate?: Date;
+    @Column('varchar')
+    masterVuelo: string;
 
-    @Column('date', {
-        name: 'entry_date',
+    @Column('varchar')
+    masterTransportista: string;
 
-    })
-    entryDate: Date;
+    @Column('varchar')
+    masterNro: string;
+
+    @Column('varchar')
+    masterFecha: string;
+
+    @Column('int')
+    nroManifiesto: number;
+
+    @Column('int')
+    viaTransporte: number;
+
+    @Column('varchar')
+    fechaArribo: string;
+
+    @Column('float')
+    pesoDeclarado: number;
+
+    @Column('varchar')
+    locacionEmbarque: string;
+
+    @Column('varchar')
+    locacionDesembarque: string;
+
+    @Column('varchar')
+    locacionEntrega: string;
+
+    @Column('varchar')
+    locacionRecepcion: string;
+
+    @Column('varchar')
+    hawb: string;
+
+    @Column('varchar')
+    fechaIngreso: string;
+
+    @Column('varchar')
+    codigoBarra: string;
+
+    @Column('varchar')
+    destinatarioNombre: string;
+
+    @Column('varchar')
+    destinatarioDireccion: string;
+
+    @Column('varchar')
+    destinatarioCiudad: string;
+
+    @Column('varchar')
+    destinatarioPais: string;
+
+    @Column('varchar')
+    destinatarioTelefono: string;
+
+    @Column('varchar')
+    destinatarioEmail: string;
+
+    @Column('varchar')
+    destinatarioRut: string;
+
+    @Column('varchar')
+    contenido: string;
+
+    @Column('float')
+    valorUsd: number;
+
+    @Column('float')
+    pesoBruto: number;
+
+    @Column('int')
+    cantidad: number;
+
+    @Column('varchar')
+    estado: string;
+
+    @Column('varchar')
+    estadoCorto: string;
+
+    @Column('float')
+    flete: number;
+
+    @Column('varchar')
+    idExterno: string;
+
+    @Column({ type: 'boolean', default: false })
+    isConfirm: boolean;
+
+    @Column({ type: 'boolean', default: true })
+    isActive: boolean
 
     @Column('varchar', {
-        name: 'folio',
-        unique: true
+        default: '0000',
     })
-    folio: string;
+    statusCode: string
 
-
-    @Column('varchar', {
-        name: 'cliente',
-    })
-    cliente: string
-
-    @OneToMany(
-        () => InitialLoadEntity,
-        (initialLoad) => initialLoad.shipmentLoad,
-        { cascade: true, eager: false }
+    @Column('varchar')
+    @ManyToOne(
+        () => ShipmentMasterEntity,
+        (shipmentMaster) => shipmentMaster.shipmentLoad,
+        { eager: false }
     )
-    initialLoad: InitialLoadEntity[];
+    shipmentMaster: string;
 
-
-    @OneToMany(
-        () => ShipmentUpdateEntity,
-        (shipmentUpdate) => shipmentUpdate.initialUpdate,
-        { cascade: true, eager: false }
-    )
-    updateLoad: ShipmentUpdateEntity[];
-
-
-    @BeforeInsert()
-    setTime() {
-        this.initialLoadDate = new Date();
-    }
-
-    @BeforeUpdate()
-    updateTime() {
-        this.lastUpdateDate = new Date();
-    }
 
 }

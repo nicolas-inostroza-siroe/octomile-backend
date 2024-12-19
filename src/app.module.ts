@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShipmentLoadModule } from './shipment-load/shipment-load.module';
 import { SortingModule } from './sorting/sorting.module';
+import { AuthModule } from './auth/auth.module';
 
 
 
@@ -13,7 +14,7 @@ import { SortingModule } from './sorting/sorting.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
+      // port: +process.env.DB_PORT,
       database: process.env.DB_NAME,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
@@ -22,7 +23,7 @@ import { SortingModule } from './sorting/sorting.module';
     }),
 
     ShipmentLoadModule,
-
+    AuthModule,
     SortingModule,
   ],
   controllers: [],

@@ -1,4 +1,4 @@
-import { ShipmentUpdateEntity } from "../entities";
+
 
 
 export interface createInitialLoadResponse {

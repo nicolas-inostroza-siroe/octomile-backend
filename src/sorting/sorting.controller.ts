@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { SortingService } from './sorting.service';
-import { ConfirmShiptmentDto, RequestShipmentDto, UpdateStatusShipmentDto } from './dto';
+import { ConfirmShiptmentDto, RequestShipmentDto, UpdateStatusShipmentDto, UploadStatusDto } from './dto';
 
 
 @Controller('sorting')
@@ -12,22 +12,16 @@ export class SortingController {
     return await this.sortingService.confirmShiptment(confirmShiptmentDto)
   }
 
+  @Post('upload-status')
+  async uploadShipmentStatus(@Body() updateStatusShipment: UploadStatusDto) {
+    return await this.sortingService.uploadStatus(updateStatusShipment);
+  }
+
   @Post('request')
   async requestData(@Body() requestShipmentDto: RequestShipmentDto) {
-    return await this.sortingService.requestDataShiptmet(requestShipmentDto)
+    return await this.sortingService.requestDataShipment(requestShipmentDto);
   }
 
-  @Post('update-status')
-  async updateLoadStatus(@Body() updateStatusShipmentDto: UpdateStatusShipmentDto) {
-    return await this.sortingService.updateStatus(updateStatusShipmentDto)
-  }
-
-  //Consultar sobre el evento 4
-
-  @Post('upload-status')
-  async uploadShipmentStatus(@Body() updateStatusShipment: UpdateStatusShipmentDto) {
-    return await this.sortingService.uploadStatusByCode(updateStatusShipment);
-  }
 
 
 

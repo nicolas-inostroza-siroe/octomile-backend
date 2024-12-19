@@ -1,4 +1,5 @@
-import { IsArray, IsDate, IsString, MinLength } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsArray, IsDate, IsNumber, IsOptional, IsString, MinLength } from "class-validator";
 
 
 
@@ -8,7 +9,8 @@ export class ConfirmShiptmentDto {
     @MinLength(1)
     mawb: string;
 
-    @IsArray({ each: true })
+    @IsArray()
+    @IsString({ each: true })
     hawbs: string[];
 
     @IsString()
@@ -16,5 +18,6 @@ export class ConfirmShiptmentDto {
     batchId: string;
 
     @IsDate()
-    checkpointDate: Date;
+    @IsOptional()
+    checkpointDate?: Date;
 }

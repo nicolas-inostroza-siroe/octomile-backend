@@ -24,7 +24,6 @@ export class SenhafferApiService {
         })
       )
 
-
   }
 
   confirmShipmentsBySenhaffer(body: ConfirmShiptmentDto) {
@@ -38,14 +37,19 @@ export class SenhafferApiService {
     //     })
     //   );
 
+
+    const { hawbs, mawb } = body;
+
     const dataTest = {
-      mawb: '369-92767498',
-      hawbs: [
-        '23927405',
-        '9177254645'
-      ]
+      mawb,
+      hawbs
     }
     return of(dataTest);
+  }
+
+
+  uploadStatusLoadByShenhaffer(hawbs: string[], status: string) {
+    return of(hawbs);
   }
 
 

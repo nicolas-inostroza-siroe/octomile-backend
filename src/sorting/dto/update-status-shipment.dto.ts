@@ -24,4 +24,5 @@ class StatusShipmentDto {
     @MinLength(1)
     statusCode: string
 
+
 }
