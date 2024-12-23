@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentLoadEntity, ShipmentMasterEntity } from './entities';
 import { CommonService } from 'src/common/common.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { User } from 'src/auth/entities/user.entity';
 
 
 @Injectable()
@@ -17,6 +18,8 @@ export class ShipmentLoadService {
     private readonly shipmentMasterRepository: Repository<ShipmentMasterEntity>,
     @InjectRepository(ShipmentLoadEntity)
     private readonly shipmentLoadRepository: Repository<ShipmentLoadEntity>,
+    @InjectRepository(User)
+    private readonly userOctomileRepository: Repository<User>,
     private readonly commonService: CommonService,
   ) { }
 
