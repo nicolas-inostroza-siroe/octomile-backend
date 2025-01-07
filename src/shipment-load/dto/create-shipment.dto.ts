@@ -1,10 +1,11 @@
-import { IsArray, IsOptional, IsString, MinLength, ValidateNested } from "class-validator";
-import { ExcelDataDto } from "./excel-data-dto.ts";
 import { Type } from "class-transformer";
+
+import { IsArray, IsOptional, IsString, MinLength, ValidateNested } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ShipmentDataLoadDto } from "./shipment-data-load.dto";
 
 
-export class CreateInitialShipmentDto {
+export class CreateShipmentDto {
 
     @ApiProperty({
         description: 'The client folio',
@@ -31,10 +32,10 @@ export class CreateInitialShipmentDto {
     @ApiProperty({
         title: 'Excel Array DTO',
         description: 'All initial-shipments',
-        type: [ExcelDataDto]
+        type: [ShipmentDataLoadDto]
     })
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => ExcelDataDto)
-    excel: ExcelDataDto[];
+    @Type(() => ShipmentDataLoadDto)
+    load: ShipmentDataLoadDto[];
 }

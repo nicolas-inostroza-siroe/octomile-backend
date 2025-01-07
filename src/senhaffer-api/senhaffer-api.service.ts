@@ -2,7 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { HttpService } from '@nestjs/axios';
 import { ServiceOrdersSenhaffer } from './interfaces';
-import { catchError } from 'rxjs';
+import { catchError, of } from 'rxjs';
+import { ConfirmShiptmentDto } from 'src/sorting/dto';
 
 @Injectable()
 export class SenhafferApiService {
@@ -23,7 +24,32 @@ export class SenhafferApiService {
         })
       )
 
+  }
 
+  confirmShipmentsBySenhaffer(body: ConfirmShiptmentDto) {
+
+    const url = `${this.senhafferUrl}/confirm-orders`;
+
+    // return this.httpService.post(url, body)
+    //   .pipe(
+    //     catchError((error) => {
+    //       throw new BadRequestException(error);
+    //     })
+    //   );
+
+
+    const { hawbs, mawb } = body;
+
+    const dataTest = {
+      mawb,
+      hawbs
+    }
+    return of(dataTest);
+  }
+
+
+  uploadStatusLoadByShenhaffer(hawbs: string[], status: string) {
+    return of(hawbs);
   }
 
 

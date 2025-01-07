@@ -3,7 +3,7 @@ import { Transform, Type } from "class-transformer";
 import { IsNumber, IsPositive, IsString, MinLength } from "class-validator";
 
 
-export class ExcelDataUpdateDto {
+export class ShipmentDataLoadDto {
 
     @ApiProperty({
         description: 'The idSistema',

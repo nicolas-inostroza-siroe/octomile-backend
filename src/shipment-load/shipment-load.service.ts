@@ -1,9 +1,12 @@
 import { BadRequestException, ConflictException, HttpStatus, Injectable, InternalServerErrorException, Logger, NotAcceptableException, NotFoundException } from '@nestjs/common';
-import { CreateInitialShipmentDto, CreateUpdateInitialUpdateDto } from './dto';
+import { CreateShipmentDto, UpdateStatusLoadDto } from './dto';
 import { Repository } from 'typeorm';
-import { InitialLoadEntity, ShipmentLoadEntity, ShipmentUpdateEntity } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ShipmentLoadEntity, ShipmentMasterEntity } from './entities';
+import { CommonService } from 'src/common/common.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { User } from 'src/auth/entities/user.entity';
+
 
 @Injectable()
 export class ShipmentLoadService {
@@ -11,21 +14,22 @@ export class ShipmentLoadService {
   private readonly logger = new Logger('ShipmentLoadService');
 
   constructor(
-    @InjectRepository(InitialLoadEntity)
-    private readonly initialLoadRepository: Repository<InitialLoadEntity>,
+    @InjectRepository(ShipmentMasterEntity)
+    private readonly shipmentMasterRepository: Repository<ShipmentMasterEntity>,
     @InjectRepository(ShipmentLoadEntity)
     private readonly shipmentLoadRepository: Repository<ShipmentLoadEntity>,
-    @InjectRepository(ShipmentUpdateEntity)
-    private readonly shipmentUpdateRepository: Repository<ShipmentUpdateEntity>
+    @InjectRepository(User)
+    private readonly userOctomileRepository: Repository<User>,
+    private readonly commonService: CommonService,
   ) { }
 
 
-  async createInitialLoad(createInitialShipmentDto: CreateInitialShipmentDto) {
+  async createLoad(createShipmentDto: CreateShipmentDto) {
 
-    const { client, excel, idFolio } = createInitialShipmentDto;
+    const { client, idFolio, load } = createShipmentDto;
 
-    const dataSet = new Set<number>(excel.map(element => element.trackingID));
-    const trakingIds = excel.map(element => element.trackingID);
+    const dataSet = new Set<number>(load.map(element => element.idSistema));
+    const trakingIds = load.map(element => element.idSistema);
 
     if (dataSet.size !== trakingIds.length) {
       this.logger.error(`There are repeated tracking ids`);
@@ -34,36 +38,34 @@ export class ShipmentLoadService {
 
     try {
 
-      const shipmentExist = await this.shipmentLoadRepository.findOneBy({ folio: idFolio });
+      const isShipmentExist = await this.shipmentMasterRepository.findOneBy({ folio: idFolio });
 
-      if (shipmentExist)
+      if (isShipmentExist)
         throw new ConflictException(`An id ${idFolio} already exists for this shipment`);
 
-      const carga = this.shipmentLoadRepository.create({
+      const carga = this.shipmentMasterRepository.create({
         initialLoadDate: new Date(),
         entryDate: new Date(),
         folio: idFolio,
         cliente: client,
-        initialLoad: excel.map(element => this.initialLoadRepository.create({ ...element })),
+        shipmentLoad: load.map(element => this.shipmentLoadRepository.create({ ...element })),
       });
 
-      await this.shipmentLoadRepository.save(carga);
+      await this.shipmentMasterRepository.save(carga);
 
-      const { initialLoad, ...rest } = carga;
-
-      return { message: 'Carga exitosa', client, initialLoad: rest };
+      return { message: 'Carga exitosa', client, carga };
     } catch (error) {
       console.log('salta error ');
-      this.handleExceptions(error);
+      this.commonService.handleExceptions(error);
     }
   }
 
 
-  async initialLoadUpdate(createUpdateInitialUpdateDto: CreateUpdateInitialUpdateDto) {
+  async updateLoadShipment(createShipmentDto: CreateShipmentDto) {
 
-    const { client, excel, idFolio } = createUpdateInitialUpdateDto;
+    const { client, idFolio, load } = createShipmentDto;
 
-    const idSystems = excel.map(data => data.idSistema);
+    const idSystems = load.map(data => data.idSistema);
     const idSystemsSet = new Set(idSystems);
 
     if (idSystemsSet.size !== idSystems.length) {
@@ -71,65 +73,72 @@ export class ShipmentLoadService {
       throw new BadRequestException(`There are repeated id System`);
     }
 
-
     try {
 
-      const data = await this.shipmentUpdateRepository.find({
+      const isShipmentExist = await this.shipmentMasterRepository.findOneBy({ folio: idFolio });
+
+      if (!isShipmentExist)
+        throw new ConflictException(`An id ${idFolio} not exists `);
+
+      const data = await this.shipmentLoadRepository.find({
         select: { idSistema: true },
       });
 
-      const idSystemExcel: number[] = excel.map(data => data.idSistema);
+      const idSystemExcel: number[] = load.map(data => data.idSistema);
       const idSystemDatabase: number[] = data.map(data => data.idSistema);
       const isIdSystemReapeat: boolean = idSystemDatabase.some(data => idSystemExcel.includes(data));
 
       if (isIdSystemReapeat) throw new ConflictException(`The idSystem  is repeat`);
 
-      const shipment = await this.shipmentLoadRepository.findOne({
+      const shipment = await this.shipmentMasterRepository.findOne({
         where: { folio: idFolio },
-        relations: { updateLoad: true }
+        relations: { shipmentLoad: true }
       });
 
       if (!shipment) throw new NotFoundException(`Folio ${idFolio} not found`);
 
-      const { updateLoad } = shipment;
-      const isIdRepeat = updateLoad.some(data => idSystems.includes(data.idSistema));
+      const { shipmentLoad } = shipment;
+      const isIdRepeat = shipmentLoad.some(data => idSystems.includes(data.idSistema));
 
       if (isIdRepeat) throw new ConflictException(`The idSystem  is repeat`);
 
       shipment.lastUpdateDate = new Date();
-      shipment.updateLoad = excel.map(element => this.shipmentUpdateRepository.create({ ...element }));
+      const newLoads = load.map(element => this.shipmentLoadRepository.create({ ...element }));
+      shipment.shipmentLoad.push(...newLoads);
 
-      await this.shipmentLoadRepository.save(shipment);
+      await this.shipmentMasterRepository.save(shipment);
       return { message: 'Carga exitosa', client, folio: idFolio };
     } catch (error) {
-      this.handleExceptions(error);
+      this.commonService.handleExceptions(error);
     }
 
   }
 
 
   async findAllShipmentsByClient(client: string) {
-    const shipment = await this.shipmentLoadRepository.find({
+    const shipment = await this.shipmentMasterRepository.find({
       where: { cliente: client },
-      relations: { initialLoad: true, updateLoad: true }
-    });
+      relations: { shipmentLoad: false },
+    })
     if (shipment.length == 0) throw new NotFoundException(`The client ${client} not found`);
     return { message: 'all client data ', client: client, shipment };
   }
 
-  async findAllShipmentsInitial(paginationDto: PaginationDto) {
+  async findAllShipmentsLoad(paginationDto: PaginationDto) {
 
     const { limit = 10, offset = 0 } = paginationDto;
-    const cargas = await this.initialLoadRepository.find({
+    const shipment = await this.shipmentLoadRepository.findAndCount({
       take: limit,
       skip: offset,
+      select: { isActive: true }
     });
-    return { message: 'all initial shipments uploaded', code: HttpStatus.OK, shipments: cargas };
+    const [cargas, numero] = shipment;
+    return { message: 'all initial shipments uploaded', code: HttpStatus.OK, shipments: cargas, cantidadCargas: numero };
   }
 
   async findAllShipments(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    const shipments = await this.shipmentLoadRepository.find({
+    const shipments = await this.shipmentMasterRepository.find({
       take: limit,
       skip: offset,
     });
@@ -137,21 +146,12 @@ export class ShipmentLoadService {
   }
 
 
-  async findAllShipmentUpdate(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
-    const shipmentsUpdate = await this.shipmentUpdateRepository.find({
-      take: limit,
-      skip: offset,
-    });
-    return { message: 'all update shipments uploaded', code: HttpStatus.OK, shipmentsUpdate: shipmentsUpdate };
-  }
+  async findAllShipmentLoadByFolio(folio: string) {
 
-  async findAllShipmentUpdateByFolio(folio: string) {
-
-    const shipment = await this.shipmentLoadRepository.findOne({
+    const shipment = await this.shipmentMasterRepository.findOne({
       where: { folio },
-      select: { id: true, folio: true, cliente: true, updateLoad: true },
-      relations: { updateLoad: true, },
+      select: { id: true, folio: true, cliente: true, shipmentLoad: true },
+      relations: { shipmentLoad: true, },
     });
 
     if (!shipment) {
@@ -159,50 +159,34 @@ export class ShipmentLoadService {
       throw new NotFoundException(`Folio ${folio} is not found`);
     }
 
-    return { message: 'ok', code: HttpStatus.OK, shipmentsUpdate: shipment };
+    return { message: 'ok', code: HttpStatus.OK, shipment: shipment };
 
   }
 
+  async changeStatusLoad(updateStatusLoadDto: UpdateStatusLoadDto) {
+    const { mawb, hawbs } = updateStatusLoadDto;
+    const { shipment } = await this.findAllShipmentLoadByFolio(mawb);
 
-  async findShipmentLoadByFolio(folio: string) {
-    const shipmentLoad = await this.shipmentLoadRepository.findOne({
-      where: { folio },
-      relations: { initialLoad: false, updateLoad: false }
+    hawbs.forEach(hawb => {
+
+      shipment.shipmentLoad = shipment.shipmentLoad.map(load => {
+        if (load.idSistema === parseInt(hawb)) {
+          load.isActive = !load.isActive;
+        }
+        return load;
+      });
     });
+    await this.shipmentMasterRepository.save(shipment)
 
-    if (!shipmentLoad) throw new NotFoundException(`Folio ${folio} is not found`)
-    return { message: 'ok', code: HttpStatus.OK, shipmentLoad: shipmentLoad };
+    return { message: 'ok', code: HttpStatus.OK };
   }
 
-  async findAllShipmentInitialByFolio(folio: string) {
-
-    const shipment = await this.shipmentLoadRepository.findOne({
-      where: { folio },
-      select: { id: true, folio: true, cliente: true, initialLoad: true },
-      relations: { initialLoad: true, },
-    });
-
-    if (!shipment) throw new NotFoundException(`Folio ${shipment.folio} is not found`);
-    return { message: 'ok', code: HttpStatus.OK, shipmentInitial: shipment };
-
+  async saveShipment(shipment: ShipmentMasterEntity) {
+    await this.shipmentMasterRepository.save(shipment);
   }
 
-
-  private handleExceptions(error: any) {
-    console.log(error);
-    this.logger.error(error);
-    if (error.code === "23505")
-      throw new BadRequestException(error.detail);
-
-    if (error.status === HttpStatus.NOT_FOUND)
-      throw new NotFoundException(error.response);
-
-    if (error.status = HttpStatus.CONFLICT)
-      throw new ConflictException(error.response);
-
-
-    throw new InternalServerErrorException("Unexpected error , check server logs");
+  async updateShipment(id: string, shipment: ShipmentMasterEntity) {
+    await this.shipmentMasterRepository.update(id, shipment);
   }
-
 
 }

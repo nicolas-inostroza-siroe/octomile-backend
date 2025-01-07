@@ -1,35 +1,39 @@
 
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity("users")
+@Entity("user_octomile")
 export class User {
 
     @PrimaryGeneratedColumn("uuid")
     id: string;
 
-    @Column("text", {
-        unique: true
+    @Column("varchar", {
+        unique: true,
+        name: "user_email"
     })
     email: string;
 
-    @Column("text", {
+    @Column("varchar", {
         select: false
     })
     password: string;
 
-    @Column("text")
+    @Column("varchar")
     fullName: string;
 
-    @Column("bool", {
+    @Column("boolean", {
         default: true
     })
     isActive: string;
 
-    @Column("text", {
-        array: true,
-        default: ["user"]
-    })
+    @Column("json")
     roles: string[];
+
+    // @Column("text", {
+    //     array: true,
+    //     default: ["user"]
+    // })
+    // roles: string[];
 
 
     @BeforeInsert()
