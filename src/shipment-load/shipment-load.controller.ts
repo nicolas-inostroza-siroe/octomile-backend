@@ -3,6 +3,8 @@ import { ShipmentLoadService } from './shipment-load.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateShipmentDto } from './dto';
+import { Auth, GetUser } from 'src/auth/decorators';
+import { User } from 'src/auth/entities/user.entity';
 
 
 @ApiTags('Shipment-load')
@@ -12,11 +14,13 @@ export class ShipmentLoadController {
     private readonly shipmentLoadService: ShipmentLoadService
   ) { }
 
+  @Auth()
   @Post('create-shipment')
   createLoad(
     @Body() createShipmentDto: CreateShipmentDto,
+    @GetUser() user: User
   ) {
-    return this.shipmentLoadService.createLoad(createShipmentDto);
+    return this.shipmentLoadService.createLoad(createShipmentDto, user);
   }
 
   @Post('update-shipment')
