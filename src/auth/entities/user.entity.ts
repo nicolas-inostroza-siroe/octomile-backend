@@ -1,4 +1,5 @@
 
+import { ShipmentMasterEntity } from "src/shipment-load/entities";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("user_octomile")
@@ -28,6 +29,12 @@ export class User {
 
     @Column("json")
     roles: string[];
+
+    @OneToMany(
+        () => ShipmentMasterEntity,
+        (shipmentMaster) => shipmentMaster.user,
+    )
+    shipmentMaster: ShipmentMasterEntity
 
     // @Column("text", {
     //     array: true,

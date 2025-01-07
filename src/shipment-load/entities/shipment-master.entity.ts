@@ -1,6 +1,7 @@
 
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn, BeforeUpdate } from "typeorm";
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn, BeforeUpdate, ManyToOne } from "typeorm";
 import { ShipmentLoadEntity } from "./shipment-load.entity";
+import { User } from "src/auth/entities/user.entity";
 
 
 
@@ -37,7 +38,7 @@ export class ShipmentMasterEntity {
     @Column('varchar', {
         name: 'cliente',
     })
-    cliente: string
+    cliente: string;
 
 
     @OneToMany(
@@ -46,6 +47,13 @@ export class ShipmentMasterEntity {
         { cascade: true, eager: false }
     )
     shipmentLoad: ShipmentLoadEntity[];
+
+    @ManyToOne(
+        () => User,
+        (user) => user.shipmentMaster,
+        { cascade: true, eager: false }
+    )
+    user: User;
 
 
     // @BeforeInsert()

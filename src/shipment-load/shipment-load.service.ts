@@ -24,7 +24,7 @@ export class ShipmentLoadService {
   ) { }
 
 
-  async createLoad(createShipmentDto: CreateShipmentDto) {
+  async createLoad(createShipmentDto: CreateShipmentDto, user: User) {
 
     const { client, idFolio, load } = createShipmentDto;
 
@@ -48,6 +48,7 @@ export class ShipmentLoadService {
         entryDate: new Date(),
         folio: idFolio,
         cliente: client,
+        user: user,
         shipmentLoad: load.map(element => this.shipmentLoadRepository.create({ ...element })),
       });
 
