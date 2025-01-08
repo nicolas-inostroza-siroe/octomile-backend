@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ShipmentLoadModule } from './shipment-load/shipment-load.module';
-import { SortingModule } from './sorting/sorting.module';
-import { AuthModule } from './auth/auth.module';
+import { ShipmentLoadModule } from '@src/shipment-load/shipment-load.module';
+import { SortingModule } from '@src/sorting/sorting.module';
+import { AuthModule } from '@src/auth/auth.module';
 
 
 

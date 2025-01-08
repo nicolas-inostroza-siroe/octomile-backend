@@ -3,7 +3,7 @@ import { ShipmentLoadService } from './shipment-load.service';
 import { ShipmentLoadController } from './shipment-load.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShipmentLoadEntity, ShipmentMasterEntity } from './entities';
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from '@src/auth/auth.module';
 
 
 @Module({

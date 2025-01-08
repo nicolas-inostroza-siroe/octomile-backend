@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SenhafferApiService } from './senhaffer-api.service';
+import { SenhafferApiService } from '@src/senhaffer-api.service';
 
 describe('SenhafferApiService', () => {
   let service: SenhafferApiService;
