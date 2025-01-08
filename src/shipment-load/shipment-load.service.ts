@@ -13,6 +13,7 @@ export class ShipmentLoadService {
 
   private readonly logger = new Logger('ShipmentLoadService');
 
+
   constructor(
     @InjectRepository(ShipmentMasterEntity)
     private readonly shipmentMasterRepository: Repository<ShipmentMasterEntity>,
@@ -20,7 +21,7 @@ export class ShipmentLoadService {
     private readonly shipmentLoadRepository: Repository<ShipmentLoadEntity>,
     @InjectRepository(User)
     private readonly userOctomileRepository: Repository<User>,
-    private readonly commonService: CommonService,
+    // private readonly commonService: CommonService,
   ) { }
 
 
@@ -57,7 +58,8 @@ export class ShipmentLoadService {
       return { message: 'Carga exitosa', client, carga };
     } catch (error) {
       console.log('salta error ');
-      this.commonService.handleExceptions(error);
+      this.logger.error(error);
+      // this.commonService.handleExceptions(error);
     }
   }
 
@@ -110,7 +112,8 @@ export class ShipmentLoadService {
       await this.shipmentMasterRepository.save(shipment);
       return { message: 'Carga exitosa', client, folio: idFolio };
     } catch (error) {
-      this.commonService.handleExceptions(error);
+      this.logger.error(error);
+      // this.commonService.handleExceptions(error);
     }
 
   }

@@ -3,7 +3,6 @@ import { ShipmentLoadService } from './shipment-load.service';
 import { ShipmentLoadController } from './shipment-load.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShipmentLoadEntity, ShipmentMasterEntity } from './entities';
-import { CommonModule } from '../common/common.module';
 import { AuthModule } from 'src/auth/auth.module';
 
 
@@ -12,7 +11,6 @@ import { AuthModule } from 'src/auth/auth.module';
   providers: [ShipmentLoadService],
   imports: [
     TypeOrmModule.forFeature([ShipmentMasterEntity, ShipmentLoadEntity]),
-    CommonModule,
     AuthModule
   ],
   exports: [TypeOrmModule, ShipmentLoadService]
