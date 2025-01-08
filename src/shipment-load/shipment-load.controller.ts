@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Query, } from '@nestjs/common';
 import { ShipmentLoadService } from './shipment-load.service';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateShipmentDto } from './dto';
 import { Auth, GetUser } from 'src/auth/decorators';

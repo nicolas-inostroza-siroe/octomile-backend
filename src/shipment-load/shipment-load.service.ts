@@ -3,7 +3,6 @@ import { CreateShipmentDto, UpdateStatusLoadDto } from './dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentLoadEntity, ShipmentMasterEntity } from './entities';
-// import { CommonService } from 'src/common/common.service';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 import { CommonService } from '../common/common.service';
 import { User } from 'src/auth/entities/user.entity';
