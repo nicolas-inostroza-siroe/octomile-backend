@@ -21,7 +21,7 @@ export class ShipmentLoadService {
     private readonly shipmentLoadRepository: Repository<ShipmentLoadEntity>,
     @InjectRepository(User)
     private readonly userOctomileRepository: Repository<User>,
-    // private readonly commonService: CommonService,
+    private readonly commonService: CommonService,
   ) { }
 
 
@@ -59,7 +59,7 @@ export class ShipmentLoadService {
     } catch (error) {
       console.log('salta error ');
       this.logger.error(error);
-      // this.commonService.handleExceptions(error);
+      this.commonService.handleExceptions(error);
     }
   }
 
@@ -113,7 +113,7 @@ export class ShipmentLoadService {
       return { message: 'Carga exitosa', client, folio: idFolio };
     } catch (error) {
       this.logger.error(error);
-      // this.commonService.handleExceptions(error);
+      this.commonService.handleExceptions(error);
     }
 
   }
