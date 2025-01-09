@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger, } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Inject, Injectable, Logger, } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { Repository } from 'typeorm';
 import { SessionDetailEntity, SessionEntity } from './entities';
@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { HttpStatusCode } from 'axios';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { PinchazoDto } from './dto/pinchazo.dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class SessionsService {
@@ -16,7 +18,8 @@ export class SessionsService {
     @InjectRepository(SessionEntity)
     private readonly sessionsRepository: Repository<SessionEntity>,
     @InjectRepository(SessionDetailEntity)
-    private readonly sessionsDetailsRepository: Repository<SessionDetailEntity>
+    private readonly sessionsDetailsRepository: Repository<SessionDetailEntity>,
+    private readonly commonService: CommonService
   ) { }
 
   async createSession(createSessionDto: CreateSessionDto) {
@@ -39,7 +42,7 @@ export class SessionsService {
         })),
       });
       await this.sessionsRepository.save(session);
-      return { message: "Carga Exitosa", status: HttpStatusCode.Ok }
+      return { message: "Carga Exitosa", status: HttpStatus.OK }
     } catch (error) {
       this.logger.error(error);
     }
@@ -47,16 +50,38 @@ export class SessionsService {
 
   async changeStatus(changeStatusDto: ChangeStatusDto) {
 
-    const { idSession, status } = changeStatusDto;
+    // const { idSession, status } = changeStatusDto;
+    const { changeStatus } = changeStatusDto;
 
-    const session = await this.sessionsRepository.findOneBy({ id: idSession });
+    const sessionesPromises = [];
 
-    if (!session) throw new BadRequestException(`session witih ${idSession} not found`);
+    try {
+      changeStatus.forEach(async status => {
+        const session = await this.sessionsRepository.findOneBy({ id: status.id });
+        // if (!session) throw new BadRequestException(`session witih ${status.id} not found`);
 
-    session.status = status;
+        if (!session) return;
 
-    await this.sessionsRepository.save(session);
-    return { message: 'Status cambiado', status: HttpStatusCode.Ok };
+        session.status = status.status;
+        sessionesPromises.push(this.sessionsRepository.save(session));
+      })
+
+
+      await Promise.all(sessionesPromises);
+      return { message: 'Status cambiado', status: HttpStatus.OK };
+    } catch (error) {
+      this.commonService.handleExceptions(error);
+    }
+
+
+
+    // const session = await this.sessionsRepository.findOneBy({ id: idSession });
+
+    // if (!session) throw new BadRequestException(`session witih ${idSession} not found`);
+
+    // session.status = status;
+
+    // await this.sessionsRepository.save(session);
   }
 
 
@@ -72,7 +97,7 @@ export class SessionsService {
 
     const detalles = session.sessionDetail;
 
-    return { message: 'todo el detalle', status: HttpStatusCode.Ok, sesionDetails: detalles };
+    return { message: 'todo el detalle', status: HttpStatus.OK, sesionDetails: detalles };
 
   }
 
@@ -101,7 +126,22 @@ export class SessionsService {
 
     const sessionUpdate = await this.sessionsRepository.preload(session);
 
-    return { message: 'producto pinchado', status: HttpStatusCode.Ok, sessionUpdate };
+    await this.sessionsRepository.save(sessionUpdate);
+
+    return { message: 'producto pinchado', status: HttpStatus.OK, sessionUpdate };
+  }
+
+
+  async getAllSessions(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    const sessions = await this.sessionsRepository.findAndCount({
+      take: limit,
+      skip: offset,
+    });
+
+    const [sesiones, cantidad] = sessions;
+
+    return { message: 'all initial shipments uploaded', code: HttpStatus.OK, sesiones: sesiones, cantidadSesiones: cantidad };
   }
 
 

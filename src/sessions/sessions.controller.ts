@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { PinchazoDto } from './dto/pinchazo.dto';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Controller('sessions')
 export class SessionsController {
@@ -34,5 +35,10 @@ export class SessionsController {
   @Patch('pinchazo')
   pincharProducto(@Body() pinchazoDto: PinchazoDto) {
     return this.sessionsService.pincharProducto(pinchazoDto);
+  }
+
+  @Get("all-sessions")
+  getAllsessions(@Query() paginationDto: PaginationDto) {
+    return this.sessionsService.getAllSessions(paginationDto);
   }
 }
