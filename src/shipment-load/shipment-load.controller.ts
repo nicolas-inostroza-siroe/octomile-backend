@@ -14,7 +14,7 @@ export class ShipmentLoadController {
     private readonly shipmentLoadService: ShipmentLoadService
   ) { }
 
-  @Auth()
+  // @Auth()
   @Post('create-shipment')
   createLoad(
     @Body() createShipmentDto: CreateShipmentDto,
