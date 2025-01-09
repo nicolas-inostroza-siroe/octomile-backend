@@ -1,5 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
-import { ValidRoles } from '@src/auth/interfaces';
+import { ValidRoles } from '../interfaces';
+
 
 
 

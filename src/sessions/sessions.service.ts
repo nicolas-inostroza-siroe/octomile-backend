@@ -1,6 +1,5 @@
 import { BadRequestException, Inject, Injectable, Logger, } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
-import { UpdateSessionDto } from './dto/update-session.dto';
 import { Repository } from 'typeorm';
 import { SessionDetailEntity, SessionEntity } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
