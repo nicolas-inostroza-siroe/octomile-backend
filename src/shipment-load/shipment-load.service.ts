@@ -25,7 +25,7 @@ export class ShipmentLoadService {
   ) { }
 
 
-  async createLoad(createShipmentDto: CreateShipmentDto, user: User) {
+  async createLoad(createShipmentDto: CreateShipmentDto) {
 
     const { client, idFolio, load } = createShipmentDto;
 
@@ -49,7 +49,7 @@ export class ShipmentLoadService {
         entryDate: new Date(),
         folio: idFolio,
         cliente: client,
-        user: user,
+        // user: user,
         shipmentLoad: load.map(element => this.shipmentLoadRepository.create({ ...element })),
       });
 
@@ -134,7 +134,7 @@ export class ShipmentLoadService {
     const shipment = await this.shipmentLoadRepository.findAndCount({
       take: limit,
       skip: offset,
-      select: { isActive: true }
+      where: { isActive: true }
     });
     const [cargas, numero] = shipment;
     return { message: 'all initial shipments uploaded', code: HttpStatus.OK, shipments: cargas, cantidadCargas: numero };

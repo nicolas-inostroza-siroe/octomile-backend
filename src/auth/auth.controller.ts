@@ -19,6 +19,13 @@ export class AuthController {
     return this.authService.create(creasteUserDto);
   }
 
+  @Post("register-admin")
+  createAdmint(@Body() creasteUserDto: CreateUserDto) {
+    return this.authService.createAdministrador(creasteUserDto);
+  }
+
+
+
 
   @Post("login")
   loginUser(@Body() loginUserDto: LoginUserDto) {
@@ -51,31 +58,7 @@ export class AuthController {
     }
   }
 
-  // @Get("private2")
-  // // @SetMetadata("roles", ["admin", "super-user"])
-  // @RoleProtected(ValidRoles.superUser, ValidRoles.admin)
-  // @UseGuards(AuthGuard(), UserRoleGuard)
-  // privateRoute2(
-  //   @GetUser() user: User
-  // ) {
-  //   return {
-  //     ok: true,
-  //     user
-  //   }
 
-  // }
-
-  @Get("private3")
-  @Auth(ValidRoles.superUser)
-  privateRoute3(
-    @GetUser() user: User
-  ) {
-    return {
-      ok: true,
-      user
-    }
-
-  }
 
 
 }
