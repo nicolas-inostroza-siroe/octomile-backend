@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShipmentLoadModule } from '@src/shipment-load/shipment-load.module';
 import { SortingModule } from '@src/sorting/sorting.module';
 import { AuthModule } from '@src/auth/auth.module';
+import { SessionsModule } from './sessions/sessions.module';
 
 
 
@@ -27,6 +28,7 @@ import { AuthModule } from '@src/auth/auth.module';
     ShipmentLoadModule,
     AuthModule,
     SortingModule,
+    SessionsModule,
   ],
   controllers: [],
   providers: [],
