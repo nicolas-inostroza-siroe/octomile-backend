@@ -5,6 +5,7 @@ import { ShipmentLoadModule } from './shipment-load/shipment-load.module';
 import { SortingModule } from './sorting/sorting.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { OperatorsModule } from './operators/operators.module';
 
 
 
@@ -29,6 +30,7 @@ import { SessionsModule } from './sessions/sessions.module';
     AuthModule,
     SortingModule,
     SessionsModule,
+    OperatorsModule
   ],
   controllers: [],
   providers: [],
