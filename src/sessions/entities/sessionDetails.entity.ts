@@ -20,6 +20,23 @@ export class SessionDetailEntity {
     @Column('varchar')
     codigoProducto: string;
 
+    @Column('bool', {
+        default: false
+    })
+    fuePinchado: boolean;
+
+
+    @Column('varchar', {
+        default: null
+    })
+    fechaPinchado?: Date
+
+
+    @Column('varchar', {
+        default: null
+    })
+    codigoPinchazo?: string
+
     @ManyToOne(
         () => SessionEntity,
         (SessionEntity) => SessionEntity.sessionDetail,
