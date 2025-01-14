@@ -4,11 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShipmentLoadModule } from './shipment-load/shipment-load.module';
 import { SortingModule } from './sorting/sorting.module';
 import { AuthModule } from './auth/auth.module';
-<<<<<<< Updated upstream
-=======
-import { OperatorsModule } from './operators/operators.module';
 import { SessionsModule } from './sessions/sessions.module';
->>>>>>> Stashed changes
+import { OperatorsModule } from './operators/operators.module';
+
 
 
 
@@ -27,16 +25,13 @@ import { SessionsModule } from './sessions/sessions.module';
       synchronize: true,
       // logging: true,
     }),
-    SessionsModule,
+
     ShipmentLoadModule,
     AuthModule,
     SortingModule,
-<<<<<<< Updated upstream
+    SessionsModule,
+    OperatorsModule
   ],
-=======
-    OperatorsModule,
-    ],
->>>>>>> Stashed changes
   controllers: [],
   providers: [],
 })
