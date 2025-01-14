@@ -16,11 +16,11 @@ export class Operator {
     @Column('varchar')
     qtyRoutes:string;
     
-    @Column('int')
-    min:number;
+    @Column('varchar')
+    min:string;
         
-    @Column('int')
-    max:number;
+    @Column('varchar')
+    max:string;
 
     @Column("json")
     config: any[];

@@ -16,14 +16,12 @@ class ZoneDto {
     enabled:string
     
     @ApiProperty()
-    @Transform(({ value }) => parseFloat(`${value}`.replace(',', '.')))
-    @IsNumber()
-    min: number;
+    @IsString()
+    min: string;
 
     @ApiProperty()
-    @Transform(({ value }) => parseFloat(`${value}`.replace(',', '.')))
-    @IsNumber()
-    max: number;
+    @IsString()
+    max: string;
     
     @ApiProperty()
     @IsString()
@@ -78,18 +76,16 @@ qtyRoutes: string;
 @ApiProperty({
     description: 'The minimum value',
     minimum: 1,
-    type: 'number',})
-    @Transform(({ value }) => parseFloat(`${value}`.replace(',', '.')))
-@IsNumber()
+    type: 'string',})
+    @IsString()
 min: number;
 
 @ApiProperty({  
     description: 'The maximum value',
     minimum: 1,
-    type: 'number',})
-    @Transform(({ value }) => parseFloat(`${value}`.replace(',', '.')))
-    @IsNumber()
-max: number;
+    type: 'string',})
+    @IsString()
+max: string;
 
 @ApiProperty({
     description: 'The config',

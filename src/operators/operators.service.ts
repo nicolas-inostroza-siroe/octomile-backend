@@ -15,7 +15,11 @@ constructor(
 
 
 async create(createOperatorDto: CreateOpertorDto) {
-  const operator = this.operatorRepository.create(createOperatorDto);
+  const operator = this.operatorRepository.create({
+    ...createOperatorDto,
+    min: createOperatorDto.min?.toString(),
+    max: createOperatorDto.max?.toString()
+  });
   return await this.operatorRepository.save(operator);
 }
 
@@ -35,7 +39,9 @@ async update(id: number, updateOperatorDto: CreateOpertorDto) {
     const updatedOperator = this.operatorRepository.create({
       ...operator,           
       ...updateOperatorDto,  
-      id: operator.id  
+      id: operator.id,
+      min: updateOperatorDto.min?.toString(),
+      max: updateOperatorDto.max?.toString()
     });
 
     return await this.operatorRepository.save(updatedOperator);
