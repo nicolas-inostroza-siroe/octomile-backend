@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateOpertorDto } from './dto/create-operator.dto';
 import { Operator } from './entities/operator.entity';
@@ -20,7 +20,10 @@ async create(createOperatorDto: CreateOpertorDto) {
     min: createOperatorDto.min?.toString(),
     max: createOperatorDto.max?.toString()
   });
-  return await this.operatorRepository.save(operator);
+  const createOperator =  await this.operatorRepository.save(operator);
+
+  return { message: 'Ok', status: HttpStatus.OK, createOperator };
+
 }
 
 async getAll() {
@@ -44,7 +47,9 @@ async update(id: number, updateOperatorDto: CreateOpertorDto) {
       max: updateOperatorDto.max?.toString()
     });
 
-    return await this.operatorRepository.save(updatedOperator);
+    const UpdateOperator =  await this.operatorRepository.save(updatedOperator);
+
+     return { message: 'Ok', status: HttpStatus.OK, UpdateOperator };
 
   } catch (error) {
     this.handleDBErrors(error);

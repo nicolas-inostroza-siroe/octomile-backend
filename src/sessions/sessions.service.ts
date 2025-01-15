@@ -8,6 +8,8 @@ import { PinchazoDto } from './dto/pinchazo.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { CommonService } from 'src/common/common.service';
 import { pinchazoDisDto } from './dto/pinchazoDis.dto';
+import { DeleteDisDto } from './dto/deleteDis.dto';
+import { Console } from 'console';
 
 @Injectable()
 export class SessionsService {
@@ -130,9 +132,15 @@ export class SessionsService {
 
     session.sessionDetail = session.sessionDetail.map(detalle => {
       if (detalle.codigoProducto === codigoProducto) {
-        detalle.fechaPinchado = new Date();
-        detalle.fuePinchado = true;
-        detalle.codigoPinchazo = 'DI';
+
+        if (detalle.fuePinchado === true) {
+          throw new Error('Product already scanned');
+        }else {
+          detalle.fechaPinchado = new Date();
+          detalle.fuePinchado = true;
+          detalle.codigoPinchazo = 'DI';
+        }
+        
       }
       return detalle;
     });
@@ -172,6 +180,61 @@ export class SessionsService {
         status: HttpStatus.OK, 
         sessionUpdate 
     };
+}
+
+async DeletDis(deleteDisDto: DeleteDisDto) {
+    const { idSession, codigoProducto } = deleteDisDto;
+    
+    const session = await this.sessionsRepository.findOne({
+        where: { id: idSession },
+        relations: { sessionDetail: true }
+    });
+
+    if (!session) {
+        throw new NotFoundException(`Session with id ${idSession} not found`);
+    }
+
+    
+    session.sessionDetail = session.sessionDetail.filter(detail => 
+        !(detail.codigoPinchazo === 'DIS' && detail.codigoProducto === codigoProducto)
+    );
+
+    const updatedSession = await this.sessionsRepository.save(session);
+
+    return {
+        message: 'ok',
+        status: HttpStatus.OK,
+        data: updatedSession
+    };
+}
+
+async UpdateDis(DeletDisDto: DeleteDisDto) {
+
+const{ idSession, codigoProducto } = DeletDisDto;
+   
+  const session = await this.sessionsRepository.findOne({
+    where: { id: idSession },
+    relations: { sessionDetail: true }
+  });
+
+  if (!session) {
+    throw new NotFoundException(`Session with id ${idSession} not found`);
+  }
+
+
+  session.sessionDetail = session.sessionDetail.map(detalle => {
+    if (detalle.codigoProducto === codigoProducto && detalle.codigoPinchazo === 'DIS') {
+      
+      detalle.codigoPinchazo = 'DI';
+    }
+    return detalle;
+  });
+
+  const sessionUpdate = await this.sessionsRepository.save(session);
+
+  return { message: 'Ok', status: HttpStatus.OK, sessionUpdate };
+
+
 }
 
 async getSessionStatistics(idSession: number) {
