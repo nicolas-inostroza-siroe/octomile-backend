@@ -7,7 +7,6 @@ import { PinchazoDto } from './dto/pinchazo.dto';
 import { pinchazoDisDto } from './dto/pinchazoDis.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DeleteDisDto } from './dto/deleteDis.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('sessions')
 export class SessionsController {
@@ -51,14 +50,6 @@ export class SessionsController {
   
   @Patch('pinchazo')
   async pincharProducto(@Body() pinchazoDto: PinchazoDto) {
-    try {
-      return await this.sessionsService.pincharProducto(pinchazoDto);
-    } catch (error) {
-      if (error.message === 'Product already scanned') {
-        throw new ConflictException('This product has already been scanned');
-      }
-      throw error;
-    }
     return this.sessionsService.pincharProducto(pinchazoDto);
   }
 
@@ -68,11 +59,9 @@ export class SessionsController {
   }
 
 
-  @Patch('update-dis')
-  @ApiOperation({ summary: 'Update DIS product' })
-  @ApiResponse({ status: 200, description: 'Product updated successfully' })
-  async updateDis(@Body() updateDisDto: DeleteDisDto) {
-      return this.sessionsService.UpdateDis(updateDisDto);
+  @Patch('UpdateDis')
+  async updateDis(deleteDisDto: DeleteDisDto) {
+    return this.sessionsService.UpdateDis(deleteDisDto);
   }
 
   @Get("all-sessions")

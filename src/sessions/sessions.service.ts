@@ -1,4 +1,4 @@
-import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { Repository } from 'typeorm';
 import { SessionDetailEntity, SessionEntity } from './entities';
@@ -116,42 +116,43 @@ export class SessionsService {
     }
 }
 
-  async pincharProducto(pinchazoDto: PinchazoDto) {
+async pincharProducto(pinchazoDto: PinchazoDto) {
+  const { codigoProducto, idSession } = pinchazoDto;
 
-    const { codigoProducto, idSession } = pinchazoDto;
+  const session = await this.sessionsRepository.findOne({
+    where: { id: idSession },
+    select: { id: true, sessionDetail: true },
+    relations: { sessionDetail: true }
+  });
 
-    const session = await this.sessionsRepository.findOne({
-      where: { id: idSession },
-      select: { id: true, sessionDetail: true },
-      relations: { sessionDetail: true }
-    });
+  if (!session) throw new BadRequestException(`session with ${idSession} not found`);
 
-    if (!session) throw new BadRequestException(`session witih ${idSession} not found`);
+  
+  const alreadyScanned = session.sessionDetail.some(
+    detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
+  );
 
-
-
-    session.sessionDetail = session.sessionDetail.map(detalle => {
-      if (detalle.codigoProducto === codigoProducto) {
-
-        if (detalle.fuePinchado === true) {
-          throw new Error('Product already scanned');
-        }else {
-          detalle.fechaPinchado = new Date();
-          detalle.fuePinchado = true;
-          detalle.codigoPinchazo = 'DI';
-        }
-        
-      }
-      return detalle;
-    });
-
-    const sessionUpdate = await this.sessionsRepository.preload(session);
-
-    await this.sessionsRepository.save(sessionUpdate);
-
-    return { message: 'producto pinchado', status: HttpStatus.OK, sessionUpdate };
+  if (alreadyScanned) {
+    throw new ConflictException('Product already scanned');
   }
 
+  session.sessionDetail = session.sessionDetail.map(detalle => {
+    if (detalle.codigoProducto === codigoProducto) {
+      detalle.fechaPinchado = new Date();
+      detalle.fuePinchado = true;
+      detalle.codigoPinchazo = 'DI';
+    }
+    return detalle;
+  });
+
+  const updatedSession = await this.sessionsRepository.save(session);
+  
+  return {
+    message: 'Product scanned successfully',
+    status: HttpStatus.OK,
+    data: updatedSession
+  };
+}
   async productoDis(pinchazo: pinchazoDisDto) {
     const session = await this.sessionsRepository.findOne({
         where: { id: pinchazo.idSession },
@@ -182,7 +183,7 @@ export class SessionsService {
     };
 }
 
-async DeletDis(deleteDisDto: DeleteDisDto) {
+  async DeletDis(deleteDisDto: DeleteDisDto) {
     const { idSession, codigoProducto } = deleteDisDto;
     
     const session = await this.sessionsRepository.findOne({
@@ -208,7 +209,7 @@ async DeletDis(deleteDisDto: DeleteDisDto) {
     };
 }
 
-async UpdateDis(DeletDisDto: DeleteDisDto) {
+  async UpdateDis(DeletDisDto: DeleteDisDto) {
 
 const{ idSession, codigoProducto } = DeletDisDto;
    
@@ -237,7 +238,7 @@ const{ idSession, codigoProducto } = DeletDisDto;
 
 }
 
-async getSessionStatistics(idSession: number) {
+  async getSessionStatistics(idSession: number) {
   const session = await this.sessionsRepository.findOne({
       where: { id: idSession },
       relations: { sessionDetail: true }
