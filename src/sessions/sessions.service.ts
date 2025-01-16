@@ -274,6 +274,7 @@ export class SessionsService {
     }));
 
     return {
+      
         message: 'producto pinchado',
         status: HttpStatus.OK,
         data: enhancedDetails

@@ -53,6 +53,7 @@ export class SessionsController {
     return this.sessionsService.pincharProducto(pinchazoDto);
   }
 
+  
   @Delete('delete-dis')
   async deletDis(@Body() deleteDisDto: DeleteDisDto) {
     return this.sessionsService.DeletDis(deleteDisDto);
