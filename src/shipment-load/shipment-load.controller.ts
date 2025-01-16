@@ -14,13 +14,12 @@ export class ShipmentLoadController {
     private readonly shipmentLoadService: ShipmentLoadService
   ) { }
 
-  @Auth()
+  // @Auth()
   @Post('create-shipment')
   createLoad(
     @Body() createShipmentDto: CreateShipmentDto,
-    @GetUser() user: User
   ) {
-    return this.shipmentLoadService.createLoad(createShipmentDto, user);
+    return this.shipmentLoadService.createLoad(createShipmentDto);
   }
 
   @Post('update-shipment')

@@ -16,4 +16,4 @@ import { CommonModule } from '../common/common.module';
   controllers: [SessionsController],
   exports: [SessionsService]
 })
-export class SessionsModule {}
+export class SessionsModule { }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ShipmentLoadController } from './shipment-load.controller';
-import { ShipmentLoadService } from './shipment-load.service';
+import { ShipmentLoadController } from '@src/shipment-load.controller';
+import { ShipmentLoadService } from '@src/shipment-load.service';
 
 describe('ShipmentLoadController', () => {
   let controller: ShipmentLoadController;

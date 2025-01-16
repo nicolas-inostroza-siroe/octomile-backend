@@ -7,6 +7,7 @@ import * as bcrypt from "bcrypt"
 import { LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { CommonService } from '../common/common.service';
 
 
 @Injectable()
@@ -15,7 +16,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly commonService: CommonService
   ) { }
 
 
@@ -24,10 +26,15 @@ export class AuthService {
     try {
 
       const { password, ...userDate } = createUserDto;
+
+      const isEmail = await this.userRepository.findOneBy({ email: userDate.email });
+
+      if (isEmail) throw new BadRequestException('El email ingresado ya existe');
+
       const user = this.userRepository.create({
         ...userDate,
         password: bcrypt.hashSync(password, 10),
-        roles: ["usuario"]
+        roles: ["operario"]
       });
 
       await this.userRepository.save(user);
@@ -39,9 +46,38 @@ export class AuthService {
       };
 
     } catch (error) {
-      this.handleDBErrors(error);
+      this.commonService.handleExceptions(error);
     }
 
+  }
+
+
+  async createAdministrador(createUserDto: CreateUserDto) {
+    try {
+
+      const { password, ...userDate } = createUserDto;
+
+      const isEmail = await this.userRepository.findOne({ where: { email: userDate.email } });
+
+      if (isEmail) throw new BadRequestException('El email ingresado ya existe');
+
+      const user = this.userRepository.create({
+        ...userDate,
+        password: bcrypt.hashSync(password, 10),
+        roles: ["operario", "administrador"]
+      });
+
+      await this.userRepository.save(user);
+      delete user.password;
+
+      return {
+        ...user,
+        token: this.getJwtToken({ id: user.id })
+      };
+
+    } catch (error) {
+      this.commonService.handleExceptions(error);
+    }
   }
 
   async login(loginUserDto: LoginUserDto) {
@@ -51,15 +87,18 @@ export class AuthService {
     // const user = await this.userRepository.findOneBy({ email: email });
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true, id: true }
+      select: { email: true, password: true, fullName: true, id: true, roles: true }
     });
 
     if (!user) throw new UnauthorizedException("Credentials are not valid (email)");
 
     if (!bcrypt.compareSync(password, user.password)) throw new UnauthorizedException("Credential are not valid (password)");
 
+
+    const { password: test, ...resto } = user
+
     return {
-      ...user,
+      ...resto,
       token: this.getJwtToken({ id: user.id })
     };
 

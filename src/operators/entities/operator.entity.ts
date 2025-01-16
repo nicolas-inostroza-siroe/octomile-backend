@@ -1,26 +1,26 @@
 
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm"
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 
 @Entity('operators')
 export class Operator {
-	@PrimaryGeneratedColumn()
-    id:number
+    @PrimaryGeneratedColumn()
+    id: number
 
     @Column('varchar',)
-    name:string;
-     
-    @Column('varchar')
-    configDirectExit:string;
+    name: string;
 
     @Column('varchar')
-    qtyRoutes:string;
-    
+    configDirectExit: string;
+
     @Column('varchar')
-    min:string;
-        
+    qtyRoutes: string;
+
     @Column('varchar')
-    max:string;
+    min: string;
+
+    @Column('varchar')
+    max: string;
 
     @Column("json")
     config: any[];

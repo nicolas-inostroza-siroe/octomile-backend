@@ -12,8 +12,8 @@ import { AuthModule } from '../auth/auth.module';
   providers: [ShipmentLoadService],
   imports: [
     TypeOrmModule.forFeature([ShipmentMasterEntity, ShipmentLoadEntity]),
-    CommonModule,
-    AuthModule
+    AuthModule,
+    CommonModule
   ],
   exports: [TypeOrmModule, ShipmentLoadService]
 })
