@@ -228,7 +228,7 @@ async pincharProducto(pinchazoDto: PinchazoDto) {
 
   async UpdateDis(DeletDisDto: DeleteDisDto) {
 
-const{ idSession, codigoProducto } = DeletDisDto;
+const{ idSession, codigoProducto, newStatus } = DeletDisDto;
    
   const session = await this.sessionsRepository.findOne({
     where: { id: idSession },
@@ -243,7 +243,7 @@ const{ idSession, codigoProducto } = DeletDisDto;
   session.sessionDetail = session.sessionDetail.map(detalle => {
     if (detalle.codigoProducto === codigoProducto && detalle.codigoPinchazo === 'DIS') {
       
-      detalle.codigoPinchazo = 'DI';
+      detalle.codigoPinchazo = newStatus;
     }
     return detalle;
   });

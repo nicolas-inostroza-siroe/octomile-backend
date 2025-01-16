@@ -60,7 +60,7 @@ export class SessionsController {
 
 
   @Patch('UpdateDis')
-  async updateDis(deleteDisDto: DeleteDisDto) {
+  async updateDis(@Body() deleteDisDto: DeleteDisDto) {
     return this.sessionsService.UpdateDis(deleteDisDto);
   }
 

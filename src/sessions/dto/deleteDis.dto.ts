@@ -11,5 +11,7 @@ export class DeleteDisDto {
     @IsString()
     codigoProducto: string;
 
+    @IsString()
+    newStatus: string;
 
 }
