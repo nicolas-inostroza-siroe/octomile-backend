@@ -34,14 +34,13 @@ export class SessionsService {
         fecha: new Date(),
         name: nombreSession,
         propietario: propietario,
-        status: 'Por activar',
+        status: 'ACTIVA',
         tipo: tipo,
         sessionDetail: productsSessions.map(product => this.sessionsDetailsRepository.create({
           bindProduct: product.bindProduct,
           numProduct: product.numProduct,
           patenteProducto: product.patenteProducto,
           codigoProducto: product.codigoProducto,
-          PinchadoPor: ""
         })),
       });
       await this.sessionsRepository.save(session);
@@ -89,117 +88,179 @@ export class SessionsService {
 
   async getAllDetailsBySession(idSession: number) {
     try {
-      const session = await this.sessionsRepository.findOne({
-        where: {
-          id: idSession
-        },
-        relations: {
-          sessionDetail: true
-        },
-      });
+        const session = await this.sessionsRepository.findOne({
+            where: { id: idSession },
+            relations: {
+                sessionDetail: {
+                    user: true
+                }
+            },
+            select: {
+                id: true,
+                sessionDetail: {
+                    id: true,
+                    codigoProducto: true,
+                    fuePinchado: true,
+                    PinchadoPor: true,
+                    fechaPinchado: true,
+                    codigoPinchazo: true,
+                    user: {
+                        fullName: true
+                    }
+                }
+            }
+        });
 
-      if (!session) {
-        throw new NotFoundException(`Session with id ${idSession} not found`);
-      }
+        if (!session) {
+            throw new NotFoundException(`Session with id ${idSession} not found`);
+        }
 
-      // console.log('Session found:', session); // Debug log
+        const enhancedDetails = session.sessionDetail.map(detail => ({
+            ...detail,
+            userName: detail.user?.fullName || 'Unknown User'
+        }));
 
-      return {
-        id: session.id,
-        details: session.sessionDetail
-      };
+        return {
+            id: session.id,
+            details: enhancedDetails
+        };
 
     } catch (error) {
-      console.error('Error in getAllDetailsBySession:', error);
-      throw new InternalServerErrorException(
-        `Error fetching session details: ${error.message}`
-      );
+        console.error('Error in getAllDetailsBySession:', error);
+        throw new InternalServerErrorException(
+            `Error fetching session details: ${error.message}`
+        );
     }
-  }
+}
 
   async pincharProducto(pinchazoDto: PinchazoDto) {
-
     const { codigoProducto, idSession } = pinchazoDto;
 
     const session = await this.sessionsRepository.findOne({
-      where: { id: idSession },
-      select: { id: true, sessionDetail: true },
-      relations: { sessionDetail: true }
+        where: { id: idSession },
+        relations: {
+            sessionDetail: {user: true},
+           
+        },
+        select: {
+            id: true,
+            sessionDetail: {
+                id: true,
+                codigoProducto: true,
+                fuePinchado: true,
+                PinchadoPor: true,
+                fechaPinchado: true,
+                codigoPinchazo: true,
+                user: {
+                    fullName: true
+                }
+            }
+        }
     });
 
     if (!session) throw new BadRequestException(`session with ${idSession} not found`);
 
-
     const exist = session.sessionDetail.some(
-      detail => detail.codigoProducto === codigoProducto
-    )
+        detail => detail.codigoProducto === codigoProducto
+    );
 
     if (!exist) {
-      return {
-        message: 'Product not exist',
-        status: HttpStatus.CONFLICT
-      }
+        return {
+            message: 'Product not exist',
+            status: HttpStatus.CONFLICT
+        };
     }
 
-
     const alreadyScanned = session.sessionDetail.some(
-      detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
+        detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
     );
 
     if (alreadyScanned) {
-      return {
-        message: 'Product already scanned',
-        status: HttpStatus.CONFLICT
-      }
+        return {
+            message: 'Product already scanned',
+            status: HttpStatus.CONFLICT
+        };
     }
 
     session.sessionDetail = session.sessionDetail.map(detalle => {
-      if (detalle.codigoProducto === codigoProducto) {
-        detalle.fechaPinchado = new Date();
-        detalle.fuePinchado = true;
-        detalle.codigoPinchazo = 'DI';
-        detalle.PinchadoPor = pinchazoDto.pinchadoPor
-      }
-      return detalle;
+        if (detalle.codigoProducto === codigoProducto) {
+            detalle.fechaPinchado = new Date();
+            detalle.fuePinchado = true;
+            detalle.codigoPinchazo = 'DI';
+            detalle.PinchadoPor = pinchazoDto.pinchadoPor;
+        }
+        return {
+            ...detalle,
+            userName: detalle.user?.fullName || 'Unknown User'
+        };
     });
 
     const updatedSession = await this.sessionsRepository.save(session);
 
     return {
-      message: 'Product scanned successfully',
-      status: HttpStatus.OK,
-      data: updatedSession.sessionDetail
+        message: 'Product scanned successfully',
+        status: HttpStatus.OK,
+        data: updatedSession.sessionDetail
     };
-  }
+}
+
   async productoDis(pinchazo: pinchazoDisDto) {
     const session = await this.sessionsRepository.findOne({
-      where: { id: pinchazo.idSession },
-      relations: { sessionDetail: true }
+        where: { id: pinchazo.idSession },
+        relations: {
+            sessionDetail: {
+                user: true
+            }
+        },
+        select: {
+            id: true,
+            sessionDetail: {
+                id: true,
+                numProduct: true,
+                bindProduct: true,
+                patenteProducto: true,
+                codigoProducto: true,
+                fuePinchado: true,
+                fechaPinchado: true,
+                codigoPinchazo: true,
+                PinchadoPor: true,
+                user: {
+                    fullName: true
+                }
+            }
+        }
     });
+
+    if (!session) {
+        throw new NotFoundException(`Session with id ${pinchazo.idSession} not found`);
+    }
 
     const details = this.sessionsDetailsRepository.create({
-      numProduct: 0,
-      bindProduct: "",
-      patenteProducto: "",
-      codigoProducto: pinchazo.codigoProducto,
-      fuePinchado: true,
-      fechaPinchado: new Date(),
-      codigoPinchazo: 'DIS',
-      PinchadoPor: pinchazo.pinchadoPor || ""
+        numProduct: 0,
+        bindProduct: "",
+        patenteProducto: "",
+        codigoProducto: pinchazo.codigoProducto,
+        fuePinchado: true,
+        fechaPinchado: new Date(),
+        codigoPinchazo: 'DIS',
+        PinchadoPor: pinchazo.pinchadoPor || ""
     });
 
-    session.sessionDetail.push(details)
-
+    session.sessionDetail.push(details);
 
     const sessionUpdate = await this.sessionsRepository.save(session);
 
+    const enhancedDetails = sessionUpdate.sessionDetail.map(detail => ({
+        ...detail,
+        userName: detail.user?.fullName || 'Unknown User'
+    }));
 
     return {
-      message: 'producto pinchado',
-      status: HttpStatus.OK,
-      data: sessionUpdate.sessionDetail
+        message: 'producto pinchado',
+        status: HttpStatus.OK,
+        data: enhancedDetails
     };
-  }
+}
 
   async DeletDis(deleteDisDto: DeleteDisDto) {
     const { idSession, codigoProducto } = deleteDisDto;
@@ -258,35 +319,38 @@ export class SessionsService {
 
   async getSessionStatistics(idSession: number) {
     const session = await this.sessionsRepository.findOne({
-      where: { id: idSession },
-      relations: { sessionDetail: true }
+        where: { id: idSession },
+        relations: {
+            sessionDetail: {
+                user: true
+            }
+        }
     });
 
     if (!session) {
-      throw new NotFoundException(`Session with id ${idSession} not found`);
+        throw new NotFoundException(`Session with id ${idSession} not found`);
     }
 
-    const details = session.sessionDetail;
+    const details = session.sessionDetail.map(detail => ({
+        ...detail,
+        userName: detail.user?.fullName || 'Unknown User'
+    }));
 
     const totalDI = details.filter(d => d.codigoPinchazo === 'DI').length;
     const totalDIS = details.filter(d => d.codigoPinchazo === 'DIS').length;
     const TotalScaned = totalDI + totalDIS;
     const TotalProducts = details.length;
     const totalMissing = TotalProducts - TotalScaned;
-    const nameSession = session.name;
 
     return {
-      totalDI,
-      totalDIS,
-      totalMissing,
-      TotalScaned,
-      TotalProducts,
-      Details: details,
-      nameSession
+        totalDI,
+        totalDIS,
+        totalMissing,
+        TotalScaned,
+        TotalProducts,
+        Details: details
     };
-  }
-
-
+}
 
   async getAllSessions(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
