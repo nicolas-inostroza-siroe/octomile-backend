@@ -37,7 +37,7 @@ export class SessionsService {
         fecha: new Date(),
         name: nombreSession,
         propietario: propietario,
-        status: 'ACTIVA',
+        status: 'Por activar',
         tipo: tipo,
         sessionDetail: productsSessions.map(product => this.sessionsDetailsRepository.create({
           bindProduct: product.bindProduct,
