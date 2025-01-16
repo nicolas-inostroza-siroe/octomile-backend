@@ -8,18 +8,6 @@ export class pinchazoDisDto {
     idSession: number;
 
     @ApiProperty()
-    @IsNumber()
-    numProduct: number;
-
-    @ApiProperty()
-    @IsString()
-    bindProduct: string;
-
-    @ApiProperty()
-    @IsString()
-    patenteProducto: string;
-
-    @ApiProperty()
     @IsString()
     codigoProducto: string;
 

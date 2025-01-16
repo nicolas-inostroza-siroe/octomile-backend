@@ -12,5 +12,7 @@ export class PinchazoDto {
     @MinLength(1)
     codigoProducto: string;
     
+    @IsString()
+    pinchadoPor: string;
 
 }

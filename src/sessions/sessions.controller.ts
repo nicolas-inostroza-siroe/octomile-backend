@@ -69,6 +69,10 @@ export class SessionsController {
     return this.sessionsService.getAllSessions(paginationDto);
   }
 
+  @Get("allActives-sessions")
+  getAllActives() {
+    return this.sessionsService.getAllActives();
+  }
 
 
 }

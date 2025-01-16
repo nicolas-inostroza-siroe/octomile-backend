@@ -101,7 +101,7 @@ export class SessionsService {
             throw new NotFoundException(`Session with id ${idSession} not found`);
         }
 
-        console.log('Session found:', session); // Debug log
+        // console.log('Session found:', session); // Debug log
 
         return {
             id: session.id,
@@ -117,6 +117,7 @@ export class SessionsService {
 }
 
 async pincharProducto(pinchazoDto: PinchazoDto) {
+
   const { codigoProducto, idSession } = pinchazoDto;
 
   const session = await this.sessionsRepository.findOne({
@@ -128,12 +129,27 @@ async pincharProducto(pinchazoDto: PinchazoDto) {
   if (!session) throw new BadRequestException(`session with ${idSession} not found`);
 
   
+  const exist = session.sessionDetail.some(
+    detail => detail.codigoProducto === codigoProducto
+  )
+
+  if(!exist){    
+    return {
+      message: 'Product not exist',
+      status: HttpStatus.CONFLICT
+    }
+  }
+
+
   const alreadyScanned = session.sessionDetail.some(
     detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
   );
 
   if (alreadyScanned) {
-    throw new ConflictException('Product already scanned');
+    return {
+      message: 'Product already scanned',
+      status: HttpStatus.CONFLICT
+    }
   }
 
   session.sessionDetail = session.sessionDetail.map(detalle => {
@@ -141,6 +157,7 @@ async pincharProducto(pinchazoDto: PinchazoDto) {
       detalle.fechaPinchado = new Date();
       detalle.fuePinchado = true;
       detalle.codigoPinchazo = 'DI';
+      detalle.PinchadoPor = pinchazoDto.pinchadoPor
     }
     return detalle;
   });
@@ -150,7 +167,7 @@ async pincharProducto(pinchazoDto: PinchazoDto) {
   return {
     message: 'Product scanned successfully',
     status: HttpStatus.OK,
-    data: updatedSession
+    data: updatedSession.sessionDetail
   };
 }
   async productoDis(pinchazo: pinchazoDisDto) {
@@ -160,9 +177,9 @@ async pincharProducto(pinchazoDto: PinchazoDto) {
     });
 
     const details = this.sessionsDetailsRepository.create({
-      numProduct: pinchazo.numProduct,
-      bindProduct: pinchazo.bindProduct,
-      patenteProducto: pinchazo.patenteProducto,
+      numProduct: 0,
+      bindProduct: "",
+      patenteProducto: "",
       codigoProducto: pinchazo.codigoProducto,
       fuePinchado: true,
       fechaPinchado: new Date(),
@@ -179,7 +196,7 @@ async pincharProducto(pinchazoDto: PinchazoDto) {
     return { 
         message: 'producto pinchado', 
         status: HttpStatus.OK, 
-        sessionUpdate 
+        data:sessionUpdate.sessionDetail 
     };
 }
 
@@ -255,6 +272,7 @@ const{ idSession, codigoProducto } = DeletDisDto;
   const TotalScaned = totalDI + totalDIS;
   const TotalProducts = details.length;
   const totalMissing = TotalProducts - TotalScaned;
+  const nameSession = session.name;
 
   return {
       totalDI,
@@ -262,7 +280,8 @@ const{ idSession, codigoProducto } = DeletDisDto;
       totalMissing,
       TotalScaned,
       TotalProducts,
-      Details: details
+      Details: details,
+      nameSession
   };
 }
 
@@ -278,6 +297,14 @@ const{ idSession, codigoProducto } = DeletDisDto;
     const [sesiones, cantidad] = sessions;
 
     return { message: 'all initial shipments uploaded', code: HttpStatus.OK, sesiones: sesiones, cantidadSesiones: cantidad };
+  }
+
+  async getAllActives(){
+    const sessions = await this.sessionsRepository.find({
+      where: {status: 'Activada'}
+    })
+
+    return { message: 'all sessions with the active status', code: HttpStatus.OK, sessions}
   }
 
 
