@@ -1,6 +1,6 @@
 import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { SessionDetailEntity, SessionEntity } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChangeStatusDto } from './dto/change-status.dto';
@@ -10,6 +10,7 @@ import { CommonService } from '../common/common.service';
 import { pinchazoDisDto } from './dto/pinchazoDis.dto';
 import { DeleteDisDto } from './dto/deleteDis.dto';
 import { Console } from 'console';
+import { User } from '../auth/entities/user.entity';
 
 @Injectable()
 export class SessionsService {
@@ -21,6 +22,8 @@ export class SessionsService {
     private readonly sessionsRepository: Repository<SessionEntity>,
     @InjectRepository(SessionDetailEntity)
     private readonly sessionsDetailsRepository: Repository<SessionDetailEntity>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly commonService: CommonService
   ) { }
 
@@ -99,12 +102,16 @@ export class SessionsService {
                 id: true,
                 sessionDetail: {
                     id: true,
+                    numProduct:true,
+                    bindProduct:true,
+                    patenteProducto:true,
                     codigoProducto: true,
                     fuePinchado: true,
                     PinchadoPor: true,
                     fechaPinchado: true,
                     codigoPinchazo: true,
                     user: {
+                        id: true,
                         fullName: true
                     }
                 }
@@ -115,9 +122,21 @@ export class SessionsService {
             throw new NotFoundException(`Session with id ${idSession} not found`);
         }
 
+      
+        const pinchadoPorIds = [...new Set(session.sessionDetail
+            .map(detail => detail.PinchadoPor)
+            .filter(id => id))];
+
+       
+        const users = await this.userRepository.findBy({
+            id: In(pinchadoPorIds)
+        });
+
+        const userMap = new Map(users.map(user => [user.id, user.fullName]));
+
         const enhancedDetails = session.sessionDetail.map(detail => ({
             ...detail,
-            userName: detail.user?.fullName || 'Unknown User'
+            NombreDeUsuario: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
         }));
 
         return {
@@ -139,8 +158,9 @@ export class SessionsService {
     const session = await this.sessionsRepository.findOne({
         where: { id: idSession },
         relations: {
-            sessionDetail: {user: true},
-           
+            sessionDetail: {
+                user: true
+            }
         },
         select: {
             id: true,
@@ -160,27 +180,17 @@ export class SessionsService {
 
     if (!session) throw new BadRequestException(`session with ${idSession} not found`);
 
-    const exist = session.sessionDetail.some(
-        detail => detail.codigoProducto === codigoProducto
-    );
+ 
+    const pinchadoPorIds = [...new Set(session.sessionDetail
+        .map(detail => detail.PinchadoPor)
+        .filter(id => id))];
 
-    if (!exist) {
-        return {
-            message: 'Product not exist',
-            status: HttpStatus.CONFLICT
-        };
-    }
+  
+    const users = await this.userRepository.findBy({
+        id: In(pinchadoPorIds)
+    });
 
-    const alreadyScanned = session.sessionDetail.some(
-        detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
-    );
-
-    if (alreadyScanned) {
-        return {
-            message: 'Product already scanned',
-            status: HttpStatus.CONFLICT
-        };
-    }
+    const userMap = new Map(users.map(user => [user.id, user.fullName]));
 
     session.sessionDetail = session.sessionDetail.map(detalle => {
         if (detalle.codigoProducto === codigoProducto) {
@@ -191,17 +201,13 @@ export class SessionsService {
         }
         return {
             ...detalle,
-            userName: detalle.user?.fullName || 'Unknown User'
+            userName: detalle.user?.fullName || 'Unknown User',
+            pinchadoPorName: detalle.PinchadoPor ? userMap.get(detalle.PinchadoPor) || 'Unknown User' : null
         };
     });
 
     const updatedSession = await this.sessionsRepository.save(session);
-
-    return {
-        message: 'Product scanned successfully',
-        status: HttpStatus.OK,
-        data: updatedSession.sessionDetail
-    };
+    return updatedSession.sessionDetail;
 }
 
   async productoDis(pinchazo: pinchazoDisDto) {
@@ -235,6 +241,18 @@ export class SessionsService {
         throw new NotFoundException(`Session with id ${pinchazo.idSession} not found`);
     }
 
+      const pinchadoPorIds = [...new Set(session.sessionDetail
+      .map(detail => detail.PinchadoPor)
+      .filter(id => id))];
+
+    const users = await this.userRepository.findBy({
+      id: In(pinchadoPorIds)
+    });
+
+    const userMap = new Map(users.map(user => [user.id, user.fullName]));
+
+
+
     const details = this.sessionsDetailsRepository.create({
         numProduct: 0,
         bindProduct: "",
@@ -247,12 +265,12 @@ export class SessionsService {
     });
 
     session.sessionDetail.push(details);
-
     const sessionUpdate = await this.sessionsRepository.save(session);
 
     const enhancedDetails = sessionUpdate.sessionDetail.map(detail => ({
         ...detail,
-        userName: detail.user?.fullName || 'Unknown User'
+        userName: detail.user?.fullName || 'Unknown User',
+        pinchadoPorName: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
     }));
 
     return {
@@ -331,9 +349,22 @@ export class SessionsService {
         throw new NotFoundException(`Session with id ${idSession} not found`);
     }
 
+    
+    const pinchadoPorIds = [...new Set(session.sessionDetail
+        .map(detail => detail.PinchadoPor)
+        .filter(id => id))];
+
+    
+    const users = await this.userRepository.findBy({
+        id: In(pinchadoPorIds)
+    });
+
+    const userMap = new Map(users.map(user => [user.id, user.fullName]));
+
     const details = session.sessionDetail.map(detail => ({
         ...detail,
-        userName: detail.user?.fullName || 'Unknown User'
+        userName: detail.user?.fullName || 'Unknown User',
+        pinchadoPorName: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
     }));
 
     const totalDI = details.filter(d => d.codigoPinchazo === 'DI').length;

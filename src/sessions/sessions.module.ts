@@ -1,19 +1,22 @@
 import { Module } from '@nestjs/common';
-import { SessionsController } from './sessions.controller';
-import { SessionsService } from './sessions.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SessionDetailEntity, SessionEntity } from './entities';
-import { HttpModule } from '@nestjs/axios';
+import { SessionsService } from './sessions.service';
+import { SessionsController } from './sessions.controller';
+import { SessionEntity, SessionDetailEntity } from './entities';
 import { CommonModule } from '../common/common.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([SessionEntity, SessionDetailEntity]),
-    HttpModule,
+    TypeOrmModule.forFeature([
+      SessionEntity,
+      SessionDetailEntity
+    ]),
+    AuthModule,
     CommonModule
   ],
   providers: [SessionsService],
   controllers: [SessionsController],
   exports: [SessionsService]
 })
-export class SessionsModule { }
+export class SessionsModule {}
