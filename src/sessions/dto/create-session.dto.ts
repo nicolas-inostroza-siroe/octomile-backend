@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, IsNumber, IsPositive, IsString, MinLength, ValidateNested } from "class-validator";
 
@@ -15,6 +16,8 @@ export class CreateSessionDto {
     @MinLength(1)
     tipo: string;
 
+        
+    @ApiProperty({ required: false, nullable: true })
     @IsString()
     pinchadoPor: string;
 
@@ -47,3 +50,5 @@ class ProductSessionDto {
 
 
 }
+
+
