@@ -136,7 +136,7 @@ export class SessionsService {
 
         const enhancedDetails = session.sessionDetail.map(detail => ({
             ...detail,
-            NombreDeUsuario: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
+            pinchadoPorName: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
         }));
 
         return {
@@ -180,6 +180,27 @@ export class SessionsService {
 
     if (!session) throw new BadRequestException(`session with ${idSession} not found`);
 
+    const exist = session.sessionDetail.some(
+      detail => detail.codigoProducto === codigoProducto
+    )
+  
+    if(!exist){    
+      return {
+        message: 'Product not exist',
+        status: HttpStatus.CONFLICT
+      }
+    }
+
+    const alreadyScanned = session.sessionDetail.some(
+      detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
+    );
+  
+    if (alreadyScanned) {
+      return {
+        message: 'Product already scanned',
+        status: HttpStatus.CONFLICT
+      }
+    }
  
     const pinchadoPorIds = [...new Set(session.sessionDetail
         .map(detail => detail.PinchadoPor)
@@ -207,7 +228,11 @@ export class SessionsService {
     });
 
     const updatedSession = await this.sessionsRepository.save(session);
-    return updatedSession.sessionDetail;
+    return {
+      message: 'Product scanned successfully',
+      status: HttpStatus.OK,
+      data: updatedSession.sessionDetail
+    }
 }
 
   async productoDis(pinchazo: pinchazoDisDto) {
