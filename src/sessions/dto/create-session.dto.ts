@@ -15,6 +15,9 @@ export class CreateSessionDto {
     @MinLength(1)
     tipo: string;
 
+    @IsString()
+    pinchadoPor: string;
+
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => ProductSessionDto)
@@ -40,5 +43,7 @@ class ProductSessionDto {
     @IsString()
     @MinLength(1)
     codigoProducto: string;
+
+
 
 }
