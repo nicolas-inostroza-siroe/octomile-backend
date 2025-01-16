@@ -5,7 +5,7 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { PinchazoDto } from './dto/pinchazo.dto';
 import { pinchazoDisDto } from './dto/pinchazoDis.dto';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 import { DeleteDisDto } from './dto/deleteDis.dto';
 
 @Controller('sessions')
@@ -34,8 +34,8 @@ export class SessionsController {
   }
 
   @Get('statistics/:id')
-   GetStatics(@Param('id', ParseIntPipe) id: number) {
-      return this.sessionsService.getSessionStatistics(id);
+  GetStatics(@Param('id', ParseIntPipe) id: number) {
+    return this.sessionsService.getSessionStatistics(id);
   }
 
 
@@ -47,7 +47,7 @@ export class SessionsController {
   }
 
 
-  
+
   @Patch('pinchazo')
   async pincharProducto(@Body() pinchazoDto: PinchazoDto) {
     return this.sessionsService.pincharProducto(pinchazoDto);

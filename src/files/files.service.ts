@@ -3,7 +3,7 @@ import { excelData } from './interfaces/file.interfaces';
 import * as ExcelJS from 'exceljs';
 import { workerData } from 'worker_threads';
 import { ChineseApiData, estructured, estructuredSenhaffer, ExcelChineseData, SenhafferCabecera } from './interfaces';
-import { SenhafferApiService } from 'src/senhaffer-api/senhaffer-api.service';
+import { SenhafferApiService } from '../senhaffer-api/senhaffer-api.service';
 
 
 @Injectable()

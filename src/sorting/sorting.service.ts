@@ -1,6 +1,6 @@
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfirmShiptmentDto, RequestShipmentDto, UpdateStatusShipmentDto, UploadStatusDto } from './dto';
-import { SenhafferApiService } from 'src/senhaffer-api/senhaffer-api.service';
+import { SenhafferApiService } from '../senhaffer-api/senhaffer-api.service';
 import { lastValueFrom } from 'rxjs';
 import { ShipmentLoadService } from '../shipment-load/shipment-load.service';
 

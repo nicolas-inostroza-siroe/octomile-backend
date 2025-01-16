@@ -3,7 +3,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ServiceOrdersSenhaffer } from './interfaces';
 import { catchError, of } from 'rxjs';
-import { ConfirmShiptmentDto } from 'src/sorting/dto';
+import { ConfirmShiptmentDto } from '../sorting/dto';
 
 @Injectable()
 export class SenhafferApiService {
