@@ -17,9 +17,7 @@ export class CreateSessionDto {
     tipo: string;
 
         
-    @ApiProperty({ required: false, nullable: true })
-    @IsString()
-    pinchadoPor: string;
+   
 
     @IsArray()
     @ValidateNested({ each: true })
@@ -47,6 +45,9 @@ class ProductSessionDto {
     @MinLength(1)
     codigoProducto: string;
 
+    @ApiProperty({ required: false, nullable: true })
+    @IsString()
+    pinchadoPor: string;
 
 
 }
