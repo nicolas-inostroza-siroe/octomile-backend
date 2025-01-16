@@ -41,6 +41,7 @@ export class SessionsService {
           numProduct: product.numProduct,
           patenteProducto: product.patenteProducto,
           codigoProducto: product.codigoProducto,
+          PinchadoPor: ""
         })),
       });
       await this.sessionsRepository.save(session);

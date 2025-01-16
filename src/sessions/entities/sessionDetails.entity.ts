@@ -38,7 +38,7 @@ export class SessionDetailEntity {
     codigoPinchazo?: string
 
     @Column('uuid', {
-        nullable: false
+        default: null
     })
     PinchadoPor: string;
 
