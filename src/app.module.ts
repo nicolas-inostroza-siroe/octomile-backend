@@ -6,6 +6,7 @@ import { SortingModule } from './sorting/sorting.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { OperatorsModule } from './operators/operators.module';
+import { WebSocketModule } from './web-socket/web-socket.module';
 
 
 
@@ -30,7 +31,8 @@ import { OperatorsModule } from './operators/operators.module';
     AuthModule,
     SortingModule,
     SessionsModule,
-    OperatorsModule
+    OperatorsModule,
+    WebSocketModule
   ],
   controllers: [],
   providers: [],
