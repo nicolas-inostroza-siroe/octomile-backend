@@ -28,6 +28,49 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
         this.server.to(`session-${data.id}`).emit('sessionUpdate', session);
     }
 
+    @SubscribeMessage('updateProduct')
+    async handleProductUpdate(client: Socket, data: { 
+        idSession: number,
+        codigoProducto: string,
+        pinchadoPor: string 
+    }) {
+        try {
+            console.log('Updating product:', data); // Debug log
+
+            // Join room if not already joined
+            client.join(`session-${data.idSession}`);
+
+            const result = await this.sessionsService.pincharProducto({
+                idSession: data.idSession,
+                codigoProducto: data.codigoProducto,
+                pinchadoPor: data.pinchadoPor
+            });
+
+            // Emit to specific room
+            this.server.to(`session-${data.idSession}`).emit('productUpdated', {
+                status: 'success',
+                data: result
+            });
+
+            // Get and broadcast fresh session data
+            const updatedSession = await this.sessionsService.getAllDetailsBySession(data.idSession);
+            this.server.to(`session-${data.idSession}`).emit('sessionUpdate', updatedSession);
+
+            // Confirm to sender
+            client.emit('updateConfirmed', {
+                status: 'success',
+                sessionId: data.idSession
+            });
+
+        } catch (error) {
+            console.error('Update error:', error);
+            client.emit('error', { 
+                status: 'error',
+                message: error.message 
+            });
+        }
+    }
+
     async emitSessionUpdate(sessionId: number) {
         const sessionData = await this.sessionsService.getAllDetailsBySession(sessionId);
         this.server.to(`session-${sessionId}`).emit('sessionUpdate', sessionData);
