@@ -266,18 +266,18 @@ export class SessionsService {
         throw new NotFoundException(`Session with id ${pinchazo.idSession} not found`);
     }
 
-      const pinchadoPorIds = [...new Set(session.sessionDetail
-      .map(detail => detail.PinchadoPor)
-      .filter(id => id))];
+const pinchadoPorIds = [...new Set(session.sessionDetail
+        .map(detail => detail.PinchadoPor)
+        .filter(id => id))];
 
+    
     const users = await this.userRepository.findBy({
-      id: In(pinchadoPorIds)
+        id: In(pinchadoPorIds)
     });
 
     const userMap = new Map(users.map(user => [user.id, user.fullName]));
 
-
-
+    
     const details = this.sessionsDetailsRepository.create({
         numProduct: 0,
         bindProduct: "",
