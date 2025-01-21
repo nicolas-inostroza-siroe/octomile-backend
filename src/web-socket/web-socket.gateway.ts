@@ -4,7 +4,13 @@ import { SessionsService } from '../sessions/sessions.service';
 
 //El web socket esta corriendo en el puerto default del proyecto (3000)
 
-@WebSocketGateway()
+@WebSocketGateway({
+    cors: {
+        origin: '*', 
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+})
 export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(
         private readonly sessionsService: SessionsService
@@ -35,7 +41,7 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
         pinchadoPor: string 
     }) {
         try {
-            console.log('Updating product:', data); // Debug log
+           // console.log('Updating product:', data); // Debug log
 
             // Join room if not already joined
             client.join(`session-${data.idSession}`);
