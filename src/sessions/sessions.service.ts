@@ -195,9 +195,6 @@ async getSiStatus() {
     };
   }
 
- 
-
-
 }
   
 
@@ -471,6 +468,7 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
     const sessions = await this.sessionsRepository.findAndCount({
       take: limit,
       skip: offset,
+      order: { id: 'DESC' }
     });
 
     const [sesiones, cantidad] = sessions;
@@ -480,7 +478,8 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
 
   async getAllActives() {
     const sessions = await this.sessionsRepository.find({
-      where: { status: 'Activada' }
+      where: { status: 'Activada' },
+      order: { id: "DESC" }
     })
 
     return { message: 'all sessions with the active status', code: HttpStatus.OK, sessions }
