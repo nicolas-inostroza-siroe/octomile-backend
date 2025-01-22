@@ -211,15 +211,19 @@ async getSiStatus() {
         select: {
             id: true,
             sessionDetail: {
-                id: true,
-                codigoProducto: true,
-                fuePinchado: true,
-                PinchadoPor: true,
-                fechaPinchado: true,
-                codigoPinchazo: true,
-                user: {
-                    fullName: true
-                }
+              id: true,
+              numProduct:true,
+              bindProduct:true,
+              patenteProducto:true,
+              codigoProducto: true,
+              fuePinchado: true,
+              PinchadoPor: true,
+              fechaPinchado: true,
+              codigoPinchazo: true,
+              user: {
+                  id: true,
+                  fullName: true
+              }
             }
         }
     });
