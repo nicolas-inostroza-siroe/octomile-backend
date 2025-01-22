@@ -215,28 +215,31 @@ export class SessionsService {
 
     const userMap = new Map(users.map(user => [user.id, user.fullName]));
 
+    let updatedProduct = null;
+
     session.sessionDetail = session.sessionDetail.map(detalle => {
         if (detalle.codigoProducto === codigoProducto) {
             detalle.fechaPinchado = new Date();
             detalle.fuePinchado = true;
             detalle.codigoPinchazo = 'DI';
             detalle.PinchadoPor = pinchazoDto.pinchadoPor;
+            updatedProduct = {
+                ...detalle,
+                userName: detalle.user?.fullName || 'Unknown User',
+                pinchadoPorName: detalle.PinchadoPor ? userMap.get(detalle.PinchadoPor) || 'Unknown User' : null
+            };
         }
-        return {
-            ...detalle,
-            userName: detalle.user?.fullName || 'Unknown User',
-            pinchadoPorName: detalle.PinchadoPor ? userMap.get(detalle.PinchadoPor) || 'Unknown User' : null
-        };
+        return detalle;
     });
 
-    const updatedSession = await this.sessionsRepository.save(session);
+     await this.sessionsRepository.save(session);
 
-    this.webSocketGateway.emitSessionUpdate(idSession, updatedSession);
+    this.webSocketGateway.emitSessionUpdate(idSession, updatedProduct);
 
     return {
       message: 'Product scanned successfully',
       status: HttpStatus.OK,
-      data: updatedSession.sessionDetail
+      
     }
 }
 
@@ -297,19 +300,19 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
     session.sessionDetail.push(details);
     const sessionUpdate = await this.sessionsRepository.save(session);
 
-    const enhancedDetails = sessionUpdate.sessionDetail.map(detail => ({
-        ...detail,
-        userName: detail.user?.fullName || 'Unknown User',
-        pinchadoPorName: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
-    }));
+   const updatedProduct = {
+    ...details,
+    userName: details.user?.fullName || 'Unknown User',
+    pinchadoPorName: details.PinchadoPor ? userMap.get(details.PinchadoPor) || 'Unknown User' : null
+};
 
-    this.webSocketGateway.emitSessionUpdate(pinchazo.idSession, enhancedDetails);
+    this.webSocketGateway.emitSessionUpdate(pinchazo.idSession, updatedProduct);
 
     return {
       
         message: 'producto pinchado',
         status: HttpStatus.OK,
-        data: enhancedDetails
+      
     };
 }
 
