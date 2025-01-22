@@ -164,7 +164,7 @@ async getSiStatus() {
   
   const sessionDetails = await this.sessionsDetailsRepository.find({
     where: {
-      estado: 'SI'
+      codigoPinchazo: 'SI'
     },
     relations: {
       user: true
