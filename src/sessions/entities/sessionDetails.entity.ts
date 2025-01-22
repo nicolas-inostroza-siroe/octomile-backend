@@ -42,6 +42,11 @@ export class SessionDetailEntity {
     })
     PinchadoPor: string;
 
+    @Column("varchar", {
+        default: null
+
+    })
+    estado: string;
 
     @ManyToOne(
         () => SessionEntity,

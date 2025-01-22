@@ -23,7 +23,7 @@ export class SessionEntity {
     @Column('varchar')
     propietario: string;
 
-
+    
 
     @OneToMany(
         () => SessionDetailEntity,

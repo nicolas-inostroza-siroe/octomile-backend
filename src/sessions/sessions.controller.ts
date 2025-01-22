@@ -33,6 +33,14 @@ export class SessionsController {
     return this.sessionsService.getAllDetailsBySession(id);
   }
 
+
+
+  @Get('GetSiStatus')
+  getSiStatus() {
+    return this.sessionsService.getSiStatus();
+   }
+
+
   @Get('statistics/:id')
   GetStatics(@Param('id', ParseIntPipe) id: number) {
     return this.sessionsService.getSessionStatistics(id);

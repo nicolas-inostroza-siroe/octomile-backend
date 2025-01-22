@@ -12,6 +12,7 @@ import { DeleteDisDto } from './dto/deleteDis.dto';
 import { Console } from 'console';
 import { User } from '../auth/entities/user.entity';
 import { webSocketGateway } from 'src/web-socket/web-socket.gateway';
+import { where } from 'sequelize';
 
 @Injectable()
 export class SessionsService {
@@ -54,6 +55,10 @@ export class SessionsService {
       this.logger.error(error);
     }
   }
+
+
+  
+
 
   async changeStatus(changeStatusDto: ChangeStatusDto) {
 
@@ -153,6 +158,48 @@ export class SessionsService {
         );
     }
 }
+
+
+async getSiStatus() {
+  
+  const sessionDetails = await this.sessionsDetailsRepository.find({
+    where: {
+      estado: 'SI'
+    },
+    relations: {
+      user: true
+    },
+    select: {
+      id: true,
+      numProduct: true,
+      bindProduct: true,
+      patenteProducto: true,
+      codigoProducto: true,
+      fuePinchado: true,
+      PinchadoPor: true,
+      fechaPinchado: true,
+      codigoPinchazo: true,
+      estado: true,
+      user: {
+        id: true,
+        fullName: true
+      }
+    }
+  });
+
+  if (!sessionDetails.length) {
+    return {
+      message: 'No products found with SI status',
+      status: HttpStatus.NOT_FOUND,
+      data: sessionDetails
+    };
+  }
+
+ 
+
+
+}
+  
 
   async pincharProducto(pinchazoDto: PinchazoDto) {
     const { codigoProducto, idSession } = pinchazoDto;
