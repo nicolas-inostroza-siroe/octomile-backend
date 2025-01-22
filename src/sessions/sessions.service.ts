@@ -283,6 +283,7 @@ async getSiStatus() {
     return {
       message: 'Product scanned successfully',
       status: HttpStatus.OK,
+      data: updatedProduct
       
     }
 }
@@ -356,6 +357,7 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
       
         message: 'producto pinchado',
         status: HttpStatus.OK,
+        data: updatedProduct
       
     };
 }
