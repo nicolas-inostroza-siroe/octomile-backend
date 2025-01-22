@@ -58,10 +58,7 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
                 data: result
             });
 
-            // Get and broadcast fresh session data
-            const updatedSession = await this.sessionsService.getAllDetailsBySession(data.idSession);
-            this.server.to(`session-${data.idSession}`).emit('sessionUpdate', updatedSession);
-
+    
             // Confirm to sender
             client.emit('updateConfirmed', {
                 status: 'success',

@@ -11,6 +11,7 @@ import { pinchazoDisDto } from './dto/pinchazoDis.dto';
 import { DeleteDisDto } from './dto/deleteDis.dto';
 import { Console } from 'console';
 import { User } from '../auth/entities/user.entity';
+import { webSocketGateway } from 'src/web-socket/web-socket.gateway';
 
 @Injectable()
 export class SessionsService {
@@ -24,7 +25,10 @@ export class SessionsService {
     private readonly sessionsDetailsRepository: Repository<SessionDetailEntity>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly commonService: CommonService
+    private readonly commonService: CommonService,
+    @InjectRepository(webSocketGateway)
+    private readonly webSocketGateway: webSocketGateway,
+
   ) { }
 
   async createSession(createSessionDto: CreateSessionDto) {
@@ -228,6 +232,10 @@ export class SessionsService {
     });
 
     const updatedSession = await this.sessionsRepository.save(session);
+
+    const sessionData = await this.getAllDetailsBySession(idSession);  
+    this.webSocketGateway.server.to(`session-${idSession}`).emit('sessionUpdate', sessionData);
+
     return {
       message: 'Product scanned successfully',
       status: HttpStatus.OK,
