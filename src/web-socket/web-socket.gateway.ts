@@ -12,9 +12,7 @@ import { SessionsService } from '../sessions/sessions.service';
     }
 })
 export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-    constructor(
-        private readonly sessionsService: SessionsService
-    ) {}
+    constructor() {}
 
     @WebSocketServer()
     server: Server;
@@ -29,56 +27,14 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     @SubscribeMessage('joinSession')
     async handleJoinSession(client: Socket, data: { id: number }) {
-        const session = await this.sessionsService.getAllDetailsBySession(data.id);
+
+        const rooms = Array.from(client.rooms).filter(room => room !== client.id);
+        rooms.forEach(room => client.leave(room));
+
         client.join(`session-${data.id}`);
-        this.server.to(`session-${data.id}`).emit('sessionUpdate', session);
     }
 
-    @SubscribeMessage('updateProduct')
-    async handleProductUpdate(client: Socket, data: { 
-        idSession: number,
-        codigoProducto: string,
-        pinchadoPor: string 
-    }) {
-        try {
-           // console.log('Updating product:', data); // Debug log
-
-            // Join room if not already joined
-            client.join(`session-${data.idSession}`);
-
-            const result = await this.sessionsService.pincharProducto({
-                idSession: data.idSession,
-                codigoProducto: data.codigoProducto,
-                pinchadoPor: data.pinchadoPor
-            });
-
-            // Emit to specific room
-            this.server.to(`session-${data.idSession}`).emit('productUpdated', {
-                status: 'success',
-                data: result
-            });
-
-            // Get and broadcast fresh session data
-            const updatedSession = await this.sessionsService.getAllDetailsBySession(data.idSession);
-            this.server.to(`session-${data.idSession}`).emit('sessionUpdate', updatedSession);
-
-            // Confirm to sender
-            client.emit('updateConfirmed', {
-                status: 'success',
-                sessionId: data.idSession
-            });
-
-        } catch (error) {
-            console.error('Update error:', error);
-            client.emit('error', { 
-                status: 'error',
-                message: error.message 
-            });
-        }
-    }
-
-    async emitSessionUpdate(sessionId: number) {
-        const sessionData = await this.sessionsService.getAllDetailsBySession(sessionId);
-        this.server.to(`session-${sessionId}`).emit('sessionUpdate', sessionData);
+    emitSessionUpdate(sessionId: any, updatedSession: any) {
+        this.server.to(`session-${sessionId}`).emit('sessionUpdate', updatedSession);
     }
 }

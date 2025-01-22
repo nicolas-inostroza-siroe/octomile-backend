@@ -1,4 +1,4 @@
-import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException, InternalServerErrorException, ConflictException, forwardRef } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { Repository, In } from 'typeorm';
 import { SessionDetailEntity, SessionEntity } from './entities';
@@ -11,6 +11,7 @@ import { pinchazoDisDto } from './dto/pinchazoDis.dto';
 import { DeleteDisDto } from './dto/deleteDis.dto';
 import { Console } from 'console';
 import { User } from '../auth/entities/user.entity';
+import { webSocketGateway } from 'src/web-socket/web-socket.gateway';
 
 @Injectable()
 export class SessionsService {
@@ -24,7 +25,8 @@ export class SessionsService {
     private readonly sessionsDetailsRepository: Repository<SessionDetailEntity>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly commonService: CommonService
+    private readonly commonService: CommonService,
+    private readonly webSocketGateway: webSocketGateway
   ) { }
 
   async createSession(createSessionDto: CreateSessionDto) {
@@ -228,6 +230,9 @@ export class SessionsService {
     });
 
     const updatedSession = await this.sessionsRepository.save(session);
+
+    this.webSocketGateway.emitSessionUpdate(idSession, updatedSession);
+
     return {
       message: 'Product scanned successfully',
       status: HttpStatus.OK,
@@ -297,6 +302,8 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
         userName: detail.user?.fullName || 'Unknown User',
         pinchadoPorName: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
     }));
+
+    this.webSocketGateway.emitSessionUpdate(pinchazo.idSession, enhancedDetails);
 
     return {
       

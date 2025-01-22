@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { webSocketGateway } from './web-socket.gateway';
 import { SessionsModule } from 'src/sessions/sessions.module';
 import { SessionsService } from 'src/sessions/sessions.service';
@@ -10,10 +10,7 @@ import { SessionDetailEntity } from 'src/sessions/entities/sessionDetails.entity
 
 
 @Module({
-    imports: [
-      
-        SessionsModule
-    ],
+    imports: [],
     providers: [
         webSocketGateway
     ],
