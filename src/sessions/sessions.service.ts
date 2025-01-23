@@ -161,13 +161,13 @@ export class SessionsService {
 
 
 async getSiStatus() {
-  
   const sessionDetails = await this.sessionsDetailsRepository.find({
     where: {
-      estado: 'SI'
+      codigoPinchazo: "SI"
     },
     relations: {
-      user: true
+      user: true,
+      idSesion: true
     },
     select: {
       id: true,
@@ -180,20 +180,46 @@ async getSiStatus() {
       fechaPinchado: true,
       codigoPinchazo: true,
       estado: true,
+      idSesion: {
+        id: true
+      },
       user: {
-        id: true,
         fullName: true
       }
     }
   });
 
+  const pinchadoPorIds = [...new Set(sessionDetails
+    .map(detail => detail.PinchadoPor)
+    .filter(id => id))];
+
+  const users = await this.userRepository.findBy({
+    id: In(pinchadoPorIds)
+  });
+
+  const userMap = new Map(users.map(user => [user.id, user.fullName]));
+
+  const enhancedDetails = sessionDetails.map(detail => ({
+    ...detail,
+    NombreDeUsuario: detail.PinchadoPor ? userMap.get(detail.PinchadoPor) || 'Unknown User' : null
+  }));
+
+
+
   if (!sessionDetails.length) {
     return {
       message: 'No products found with SI status',
       status: HttpStatus.NOT_FOUND,
-      data: sessionDetails
+      data: enhancedDetails
     };
   }
+
+  return {
+    message: 'Products found with SI status',
+    status: HttpStatus.OK,
+    data: enhancedDetails
+
+   }
 
 }
   
