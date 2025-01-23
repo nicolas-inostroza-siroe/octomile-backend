@@ -13,6 +13,7 @@ import { Console } from 'console';
 import { User } from '../auth/entities/user.entity';
 import { webSocketGateway } from 'src/web-socket/web-socket.gateway';
 import { where } from 'sequelize';
+import { stat } from 'fs';
 
 @Injectable()
 export class SessionsService {
@@ -193,6 +194,12 @@ async getSiStatus() {
       status: HttpStatus.NOT_FOUND,
       data: sessionDetails
     };
+  }
+
+  return {
+    message: 'Products Found with SI status',
+    status: HttpStatus.OK,
+    data: sessionDetails
   }
 
 }
