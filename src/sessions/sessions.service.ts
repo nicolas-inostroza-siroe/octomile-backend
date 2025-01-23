@@ -217,7 +217,7 @@ async getSiStatus() {
   return {
     message: 'Products Found with SI status',
     status: HttpStatus.OK,
-    data: sessionDetails
+    data: enhancedDetails
   }
 
 }
