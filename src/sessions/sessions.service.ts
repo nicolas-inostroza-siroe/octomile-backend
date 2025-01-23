@@ -12,7 +12,7 @@ import { DeleteDisDto } from './dto/deleteDis.dto';
 import { Console } from 'console';
 import { User } from '../auth/entities/user.entity';
 import { webSocketGateway } from 'src/web-socket/web-socket.gateway';
-import { where } from 'sequelize';
+
 
 @Injectable()
 export class SessionsService {
@@ -163,7 +163,7 @@ export class SessionsService {
 async getSiStatus() {
   const sessionDetails = await this.sessionsDetailsRepository.find({
     where: {
-      codigoPinchazo: "SI"
+      codigoPinchazo: 'SI'
     },
     relations: {
       user: true,
@@ -215,11 +215,10 @@ async getSiStatus() {
   }
 
   return {
-    message: 'Products found with SI status',
+    message: 'Products Found with SI status',
     status: HttpStatus.OK,
-    data: enhancedDetails
-
-   }
+    data: sessionDetails
+  }
 
 }
   
@@ -237,15 +236,19 @@ async getSiStatus() {
         select: {
             id: true,
             sessionDetail: {
-                id: true,
-                codigoProducto: true,
-                fuePinchado: true,
-                PinchadoPor: true,
-                fechaPinchado: true,
-                codigoPinchazo: true,
-                user: {
-                    fullName: true
-                }
+              id: true,
+              numProduct:true,
+              bindProduct:true,
+              patenteProducto:true,
+              codigoProducto: true,
+              fuePinchado: true,
+              PinchadoPor: true,
+              fechaPinchado: true,
+              codigoPinchazo: true,
+              user: {
+                  id: true,
+                  fullName: true
+              }
             }
         }
     });
@@ -309,6 +312,7 @@ async getSiStatus() {
     return {
       message: 'Product scanned successfully',
       status: HttpStatus.OK,
+      data: updatedProduct
       
     }
 }
@@ -382,6 +386,7 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
       
         message: 'producto pinchado',
         status: HttpStatus.OK,
+        data: updatedProduct
       
     };
 }
