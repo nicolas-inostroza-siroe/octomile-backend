@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { OperatorsModule } from './operators/operators.module';
 import { WebSocketModule } from './web-socket/web-socket.module';
+import { CompanyModule } from './company/company.module';
+
 
 
 
@@ -32,7 +34,8 @@ import { WebSocketModule } from './web-socket/web-socket.module';
     SortingModule,
     SessionsModule,
     OperatorsModule,
-    WebSocketModule
+    WebSocketModule,
+    CompanyModule
   ],
   controllers: [],
   providers: [],
