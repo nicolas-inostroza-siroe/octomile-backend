@@ -19,4 +19,9 @@ export class CompanyService {
           throw new BadRequestException('Error creating company');
         }
     }
+
+    async findAll(): Promise<CompanyEntity[]> {
+      return await this.companyRepository.find();
+    }
+
 }
