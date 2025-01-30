@@ -37,7 +37,7 @@ export class CompanyController {
   ) {
     await this.companyService.update(id, updateCompanyDto);
     return {
-      message: 'Company updated successfully',
+      message: 'success',
       statusCode: 200
     };
   }
