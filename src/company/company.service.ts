@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CompanyEntity } from './entities/company.entity';
 import { Repository } from 'typeorm';
@@ -22,6 +22,14 @@ export class CompanyService {
 
     async findAll(): Promise<CompanyEntity[]> {
       return await this.companyRepository.find();
+    }
+
+    async update(id: number, updateCompanyDto: CreateCompanyDto): Promise<void> {
+      const company = await this.companyRepository.findOne({ where: { id } });
+      if (!company) {
+        throw new NotFoundException('Company not found');
+      }
+      await this.companyRepository.update(id, updateCompanyDto);
     }
 
 }

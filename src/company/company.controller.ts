@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Param } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -30,6 +30,17 @@ export class CompanyController {
     };
   }
 
+  @Put('update/:id')
+  async update(
+    @Param('id') id: number,
+    @Body() updateCompanyDto: CreateCompanyDto
+  ) {
+    await this.companyService.update(id, updateCompanyDto);
+    return {
+      message: 'Company updated successfully',
+      statusCode: 200
+    };
+  }
 
 
 
