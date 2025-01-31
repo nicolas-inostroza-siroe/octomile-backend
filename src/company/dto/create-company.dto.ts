@@ -76,4 +76,11 @@ export class CreateCompanyDto {
   @IsString()
   @IsNotEmpty()
   comunaRepresentante: string;
+
+  @ApiProperty({ description: "estado de la empresa" })
+  @IsString()
+  @IsNotEmpty()
+  status: string;
+
+
 }

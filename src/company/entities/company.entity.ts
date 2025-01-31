@@ -49,4 +49,7 @@ export class CompanyEntity {
 
   @Column({ type: 'varchar'})
   comunaRepresentante: string;
+
+  @Column({ type: 'varchar'})
+  status: string;
 }

@@ -13,12 +13,15 @@ export class CompanyService {
 
       async create(createCompanyDto: CreateCompanyDto): Promise<CompanyEntity> {
         try {
-          const company = this.companyRepository.create(createCompanyDto);
+          const company = this.companyRepository.create({
+            ...createCompanyDto,
+            status: 'activo', 
+          });
           return await this.companyRepository.save(company);
         } catch (error) {
           throw new BadRequestException('Error creating company');
         }
-    }
+      }
 
     async findAll(): Promise<CompanyEntity[]> {
       return await this.companyRepository.find();
@@ -32,4 +35,7 @@ export class CompanyService {
       await this.companyRepository.update(id, updateCompanyDto);
     }
 
+    async updateAllStatusToActive(): Promise<void> {
+      await this.companyRepository.update({}, { status: 'activo' });
+    }
 }
