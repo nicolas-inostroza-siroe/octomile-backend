@@ -3,6 +3,7 @@ import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyEntity } from './entities/company.entity';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 
 @Controller('company')
@@ -41,6 +42,15 @@ export class CompanyController {
       statusCode: 200
     };
   }
+
+  @Patch('update-status/:id')
+    async updateStatus(@Param('id') id: number, @Body() updateStatusDto: UpdateStatusDto) {
+  
+      await this.companyService.updateStatus(id, updateStatusDto.status);
+  
+  return {message: 'Company status updated successfully',statusCode: 200};
+} 
+
 
 
 

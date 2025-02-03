@@ -34,8 +34,15 @@ export class CompanyService {
       }
       await this.companyRepository.update(id, updateCompanyDto);
     }
-
-    async updateAllStatusToActive(): Promise<void> {
-      await this.companyRepository.update({}, { status: 'activo' });
+ 
+    async updateStatus(id: number, status: string): Promise<void> {
+      const company = await this.companyRepository.findOne({ where: { id } });
+      if (!company) {
+        throw new NotFoundException('Company not found');
+      }
+      await this.companyRepository.update(id, { status });
     }
+
+
+
 }
