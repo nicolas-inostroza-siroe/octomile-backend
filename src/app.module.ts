@@ -8,14 +8,19 @@ import { SessionsModule } from './sessions/sessions.module';
 import { OperatorsModule } from './operators/operators.module';
 import { WebSocketModule } from './web-socket/web-socket.module';
 import { CompanyModule } from './company/company.module';
-
-
-
-
+import { DriversModule } from './drivers/drivers.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads', // accedes a los archivos vía http://localhost:3000/uploads
+    }),
+
 
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -35,10 +40,10 @@ import { CompanyModule } from './company/company.module';
     SessionsModule,
     OperatorsModule,
     WebSocketModule,
-    CompanyModule
+    CompanyModule,
+    DriversModule
   ],
-  controllers: [],
-  providers: [],
+
 })
 export class AppModule {
 
