@@ -13,7 +13,7 @@ export class DriversService {
     constructor(
         @InjectRepository(DriversEntity)
         private readonly driverRepository: Repository<DriversEntity>
-   ) {
+    ) {
         if (!fs.existsSync(this.uploadDir)) {
             fs.mkdirSync(this.uploadDir, { recursive: true });
         }
@@ -23,31 +23,31 @@ export class DriversService {
         let fileUrls: Record<string, string> = {};
         try {
             fileUrls = await this.saveFilesToLocal(files);
-            
+
             const driverData = {
                 ...createDriverDto,
-                fecha_de_vencimiento_permiso_circulacion: new Date(createDriverDto.fecha_de_vencimiento_permiso_circulacion).toISOString(),
-                fecha_de_vencimiento_revision_tecnica: new Date(createDriverDto.fecha_de_vencimiento_revision_tecnica).toISOString(),
-                fecha_de_vencimiento_carnet_de_identidad: new Date(createDriverDto.fecha_de_vencimiento_carnet_de_identidad).toISOString(),
-                fecha_de_vencimiento_licencia_conductor: new Date(createDriverDto.fecha_de_vencimiento_licencia_conductor).toISOString(),
+                fecha_de_vencimiento_permiso_circulacion: new Date(createDriverDto.fecha_de_vencimiento_permiso_circulacion).toISOString().split('T')[0],
+                fecha_de_vencimiento_revision_tecnica: new Date(createDriverDto.fecha_de_vencimiento_revision_tecnica).toISOString().split('T')[0],
+                fecha_de_vencimiento_carnet_de_identidad: new Date(createDriverDto.fecha_de_vencimiento_carnet_de_identidad).toISOString().split('T')[0],
+                fecha_de_vencimiento_licencia_conductor: new Date(createDriverDto.fecha_de_vencimiento_licencia_conductor).toISOString().split('T')[0],
                 permiso_circulacion: fileUrls['permiso_circulacion'] || null,
                 revision_tecnica: fileUrls['revision_tecnica'] || null,
                 soap_al_dia: fileUrls['soap_al_dia'] || null,
                 Carnet_de_identidad_vigente: fileUrls['Carnet_de_identidad_vigente'] || null,
                 licencia_conductor_vigente: fileUrls['licencia_conductor_vigente'] || null,
                 certificado_antecedentes_vigente: fileUrls['certificado_antecedentes_vigente'] || null,
-                   certificado_anotaciones_vigente: fileUrls['certificado_anotaciones_vigente'] || null,
+                certificado_anotaciones_vigente: fileUrls['certificado_anotaciones_vigente'] || null,
                 fotografia1: fileUrls['fotografia1'] || null,
                 fotografia2: fileUrls['fotografia2'] || null,
                 fotografia3: fileUrls['fotografia3'] || null,
                 fotografia4: fileUrls['fotografia4'] || null,
                 status: 'active',
             };
-    
+
             const driver = this.driverRepository.create(driverData);
-    
+
             return await this.driverRepository.save(driver);
-    
+
         } catch (error) {
             Object.values(fileUrls).forEach(filePath => {
                 if (fs.existsSync(filePath)) {
