@@ -23,13 +23,13 @@ export class DriversService {
         let fileUrls: Record<string, string> = {};
         try {
             fileUrls = await this.saveFilesToLocal(files);
-
+            console.log('fileUrls', fileUrls);
             const driverData = {
                 ...createDriverDto,
-                fecha_de_vencimiento_permiso_circulacion: new Date(createDriverDto.fecha_de_vencimiento_permiso_circulacion).toISOString().split('T')[0],
-                fecha_de_vencimiento_revision_tecnica: new Date(createDriverDto.fecha_de_vencimiento_revision_tecnica).toISOString().split('T')[0],
-                fecha_de_vencimiento_carnet_de_identidad: new Date(createDriverDto.fecha_de_vencimiento_carnet_de_identidad).toISOString().split('T')[0],
-                fecha_de_vencimiento_licencia_conductor: new Date(createDriverDto.fecha_de_vencimiento_licencia_conductor).toISOString().split('T')[0],
+                fecha_de_vencimiento_permiso_circulacion: String(createDriverDto.fecha_de_vencimiento_permiso_circulacion),
+                fecha_de_vencimiento_revision_tecnica: String(createDriverDto.fecha_de_vencimiento_revision_tecnica),
+                fecha_de_vencimiento_carnet_de_identidad: String(createDriverDto.fecha_de_vencimiento_carnet_de_identidad),
+                fecha_de_vencimiento_licencia_conductor: String(createDriverDto.fecha_de_vencimiento_licencia_conductor),
                 permiso_circulacion: fileUrls['permiso_circulacion'] || null,
                 revision_tecnica: fileUrls['revision_tecnica'] || null,
                 soap_al_dia: fileUrls['soap_al_dia'] || null,
@@ -152,18 +152,7 @@ export class DriversService {
         Object.assign(driver, updateDriverDto);
 
         // Si se envían fechas, conviértelas a ISOString
-        if (updateDriverDto.fecha_de_vencimiento_permiso_circulacion) {
-            driver.fecha_de_vencimiento_permiso_circulacion = new Date(updateDriverDto.fecha_de_vencimiento_permiso_circulacion).toISOString();
-        }
-        if (updateDriverDto.fecha_de_vencimiento_revision_tecnica) {
-            driver.fecha_de_vencimiento_revision_tecnica = new Date(updateDriverDto.fecha_de_vencimiento_revision_tecnica).toISOString();
-        }
-        if (updateDriverDto.fecha_de_vencimiento_carnet_de_identidad) {
-            driver.fecha_de_vencimiento_carnet_de_identidad = new Date(updateDriverDto.fecha_de_vencimiento_carnet_de_identidad).toISOString();
-        }
-        if (updateDriverDto.fecha_de_vencimiento_licencia_conductor) {
-            driver.fecha_de_vencimiento_licencia_conductor = new Date(updateDriverDto.fecha_de_vencimiento_licencia_conductor).toISOString();
-        }
+      
 
         return await this.driverRepository.save(driver);
     }

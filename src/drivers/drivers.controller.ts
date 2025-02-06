@@ -27,6 +27,7 @@ export class DriversController {
         @Body() createDriverDto: CreateDriverDto,
         @UploadedFiles() files: Record<string, Express.Multer.File[]>
     ) {
+
         const fileArray = Object.entries(files).map(([fieldname, fileArr]) => ({
             ...fileArr[0],
             fieldname

@@ -38,25 +38,25 @@ export class CreateDriverDto {
     @ApiProperty({ type: 'string', format: 'binary' })
     permiso_circulacion: string;
 
-    @ApiProperty({ type: 'string', format: 'date-time' })
+    @ApiProperty({ type: 'string',  })
     
     @IsNotEmpty()
-    fecha_de_vencimiento_permiso_circulacion: Date;
+    fecha_de_vencimiento_permiso_circulacion: String;
 
   
     @ApiProperty({ type: 'string', format: 'binary' })
     revision_tecnica: string;
 
-    @ApiProperty({ type: 'string', format: 'date-time' })
+    @ApiProperty({ type: 'string', })
     
     @IsNotEmpty()
-    fecha_de_vencimiento_revision_tecnica: Date;
+    fecha_de_vencimiento_revision_tecnica: String;
 
    
     @ApiProperty({ type: 'string', format: 'binary' })
     soap_al_dia: string;
 
-    @ApiProperty({ type: 'string', format: 'date-time' })
+    @ApiProperty({ type: 'string'})
  
     @IsNotEmpty()
     fecha_de_vencimiento_soap: string;
@@ -97,19 +97,19 @@ export class CreateDriverDto {
     @ApiProperty({ type: 'string', format: 'binary' })
     Carnet_de_identidad_vigente: string;
 
-    @ApiProperty({ type: 'string', format: 'date-time' })
+    @ApiProperty({ type: 'string'})
     
     @IsNotEmpty()
-    fecha_de_vencimiento_carnet_de_identidad: Date;
+    fecha_de_vencimiento_carnet_de_identidad: String;
 
    
     @ApiProperty({ type: 'string', format: 'binary' })
     licencia_conductor_vigente: string;
 
-    @ApiProperty({ type: 'string', format: 'date-time' })
+    @ApiProperty({ type: 'string' })
     
     @IsNotEmpty()
-    fecha_de_vencimiento_licencia_conductor: Date;
+    fecha_de_vencimiento_licencia_conductor: String;
 
     
     @ApiProperty({ type: 'string', format: 'binary' })
