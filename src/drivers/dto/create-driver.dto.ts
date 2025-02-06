@@ -39,7 +39,7 @@ export class CreateDriverDto {
     permiso_circulacion: string;
 
     @ApiProperty({ type: 'string', format: 'date-time' })
-    @IsISO8601()
+    
     @IsNotEmpty()
     fecha_de_vencimiento_permiso_circulacion: Date;
 
@@ -48,7 +48,7 @@ export class CreateDriverDto {
     revision_tecnica: string;
 
     @ApiProperty({ type: 'string', format: 'date-time' })
-    @IsISO8601()
+    
     @IsNotEmpty()
     fecha_de_vencimiento_revision_tecnica: Date;
 
@@ -57,7 +57,7 @@ export class CreateDriverDto {
     soap_al_dia: string;
 
     @ApiProperty({ type: 'string', format: 'date-time' })
-    @IsISO8601()
+ 
     @IsNotEmpty()
     fecha_de_vencimiento_soap: string;
 
@@ -98,7 +98,7 @@ export class CreateDriverDto {
     Carnet_de_identidad_vigente: string;
 
     @ApiProperty({ type: 'string', format: 'date-time' })
-    @IsISO8601()
+    
     @IsNotEmpty()
     fecha_de_vencimiento_carnet_de_identidad: Date;
 
@@ -107,7 +107,7 @@ export class CreateDriverDto {
     licencia_conductor_vigente: string;
 
     @ApiProperty({ type: 'string', format: 'date-time' })
-    @IsISO8601()
+    
     @IsNotEmpty()
     fecha_de_vencimiento_licencia_conductor: Date;
 
