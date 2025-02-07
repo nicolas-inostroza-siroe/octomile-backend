@@ -109,10 +109,12 @@ export class DriversService {
             throw new HttpException(`Driver with id ${id} not found`, HttpStatus.NOT_FOUND);
         }
 
-        // Process files if provided
-        let fileUrls: Record<string, string> = {};
+        // Actualiza primero los campos de texto
+        Object.assign(driver, updateDriverDto);
+
+        // Luego, si se enviaron archivos, actualiza los campos de archivos
         if (files && files.length > 0) {
-            fileUrls = await this.saveFilesToLocal(files);
+            const fileUrls = await this.saveFilesToLocal(files);
             if (fileUrls['permiso_circulacion']) {
                 driver.permiso_circulacion = fileUrls['permiso_circulacion'];
             }
@@ -147,12 +149,6 @@ export class DriversService {
                 driver.fotografia4 = fileUrls['fotografia4'];
             }
         }
-
-        // Update non-file fields if provided
-        Object.assign(driver, updateDriverDto);
-
-        
-      
 
         return await this.driverRepository.save(driver);
     }
