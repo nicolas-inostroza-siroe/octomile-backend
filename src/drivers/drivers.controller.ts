@@ -49,7 +49,7 @@ export class DriversController {
         return await this.driversService.updateStatus(id, status);
     }
 
-    @Put('update/:id')
+    @Patch('update/:id')
     @UseInterceptors(
         FileFieldsInterceptor([
             { name: 'permiso_circulacion', maxCount: 1 },
