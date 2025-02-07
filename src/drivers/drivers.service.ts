@@ -151,7 +151,7 @@ export class DriversService {
         // Update non-file fields if provided
         Object.assign(driver, updateDriverDto);
 
-        // Si se envían fechas, conviértelas a ISOString
+        
       
 
         return await this.driverRepository.save(driver);

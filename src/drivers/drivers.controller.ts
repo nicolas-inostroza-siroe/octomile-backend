@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFiles, Get, Patch, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors, UploadedFiles, Get, Patch, Param, Put } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { DriversService } from './drivers.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
@@ -49,7 +49,7 @@ export class DriversController {
         return await this.driversService.updateStatus(id, status);
     }
 
-    @Patch('update/:id')
+    @Put('update/:id')
     @UseInterceptors(
         FileFieldsInterceptor([
             { name: 'permiso_circulacion', maxCount: 1 },
