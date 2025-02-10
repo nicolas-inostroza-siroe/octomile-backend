@@ -78,4 +78,10 @@ export class DriversController {
         return await this.driversService.update(id, updateDriverDto, fileArray);
     }
 
+
+    @Get('getListEmpresas')
+    async getEmpresas() {
+        return await this.driversService.getEmpresas();
+    }
+
 }

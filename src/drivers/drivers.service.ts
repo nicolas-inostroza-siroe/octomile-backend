@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DriversEntity } from './entities/drivers.entity';
 import { CreateDriverDto } from './dto/create-driver.dto';
+import { CompanyEntity } from 'src/company/entities/company.entity';
 
 @Injectable()
 export class DriversService {
@@ -12,7 +13,9 @@ export class DriversService {
 
     constructor(
         @InjectRepository(DriversEntity)
-        private readonly driverRepository: Repository<DriversEntity>
+        private readonly driverRepository: Repository<DriversEntity>,
+        @InjectRepository(CompanyEntity)
+        private readonly companyRepository: Repository<CompanyEntity>
     ) {
         if (!fs.existsSync(this.uploadDir)) {
             fs.mkdirSync(this.uploadDir, { recursive: true });
@@ -153,4 +156,19 @@ export class DriversService {
         return await this.driverRepository.save(driver);
     }
 
+
+    async getEmpresas(){
+        const empresasUnicas = await this.companyRepository
+        .createQueryBuilder('company')
+        .select('company.razonSocial', 'razonSocial')
+        .addSelect('MIN(company.id)', 'id') // se toma el id mínimo para cada nombre único
+        .groupBy('company.razonSocial')
+        .getRawMany();
+
+    // Transforma el resultado para devolver un array de objetos con id y razonSocial
+    return empresasUnicas.map(item => ({
+        id: +item.id, // convierte a número
+        razonSocial: item.razonSocial,
+    }));
+    }
 }
