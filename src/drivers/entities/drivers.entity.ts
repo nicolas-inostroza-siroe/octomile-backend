@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 @Entity('drivers')
@@ -89,6 +89,12 @@ export class DriversEntity {
 
     @Column({type: 'varchar'})
     status: string;
+
+    @CreateDateColumn({ name: 'created_at' })
+    created_at: Date;
+
+    @UpdateDateColumn({ name: 'updated_at' })
+    updated_at: Date;
 
 }
 
