@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFiles, Get, Patch, Param, Put } from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors, UploadedFiles, Get, Patch, Param, Put, Delete } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { DriversService } from './drivers.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
@@ -84,4 +84,9 @@ export class DriversController {
         return await this.driversService.getEmpresas();
     }
 
+    @Delete('deleteAll')
+    async deleteAll() {
+        await this.driversService.deleteAll();
+        return { message: 'All drivers deleted successfully' };
+    }
 }

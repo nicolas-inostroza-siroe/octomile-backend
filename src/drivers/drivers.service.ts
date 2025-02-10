@@ -161,14 +161,29 @@ export class DriversService {
         const empresasUnicas = await this.companyRepository
         .createQueryBuilder('company')
         .select('company.razonSocial', 'razonSocial')
-        .addSelect('MIN(company.id)', 'id') // se toma el id mínimo para cada nombre único
+        .addSelect('MIN(company.id)', 'id') 
         .groupBy('company.razonSocial')
         .getRawMany();
 
-    // Transforma el resultado para devolver un array de objetos con id y razonSocial
+   
     return empresasUnicas.map(item => ({
         id: +item.id, // convierte a número
         razonSocial: item.razonSocial,
     }));
+    }
+
+    async deleteAll() {
+        const drivers = await this.driverRepository.find();
+        for (const driver of drivers) {
+            if (driver.documents) {
+                Object.values(driver.documents).forEach(filePath => {
+                    const pathString = filePath as string;
+                    if (fs.existsSync(pathString)) {
+                        fs.unlinkSync(pathString);
+                    }
+                });
+            }
+        }
+        await this.driverRepository.clear();
     }
 }
