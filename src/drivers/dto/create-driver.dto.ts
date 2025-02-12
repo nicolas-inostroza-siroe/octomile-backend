@@ -73,17 +73,14 @@ export class CreateDriverDto {
 
     @ApiProperty({ type: 'string'})
     @IsString()
-    @IsNotEmpty()
     ancho_vehiculo: string;
 
     @ApiProperty({ type: 'string'})
     @IsString()
-    @IsNotEmpty()
     largo_vehiculo: string;
 
     @Column({ type: 'varchar'})
     @IsString()
-    @IsNotEmpty()
     alto_vehiculo: string;
 
 
@@ -91,9 +88,7 @@ export class CreateDriverDto {
     @ApiProperty({ type: 'string', format: 'binary' })
     Carnet_de_identidad_vigente: string;
 
-    @ApiProperty({ type: 'string'})
-    
-     
+    @ApiProperty({ type: 'string'}) 
     fecha_de_vencimiento_carnet_de_identidad: String;
 
    
@@ -101,8 +96,6 @@ export class CreateDriverDto {
     licencia_conductor_vigente: string;
 
     @ApiProperty({ type: 'string' })
-    
-    
     fecha_de_vencimiento_licencia_conductor: String;
 
     
