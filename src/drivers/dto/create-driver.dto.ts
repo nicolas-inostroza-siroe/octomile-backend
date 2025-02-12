@@ -39,8 +39,6 @@ export class CreateDriverDto {
     permiso_circulacion: string;
 
     @ApiProperty({ type: 'string',  })
-    
-   
     fecha_de_vencimiento_permiso_circulacion: String;
 
   
@@ -78,7 +76,7 @@ export class CreateDriverDto {
     @IsNotEmpty()
     ancho_vehiculo: string;
 
-   @ApiProperty({ type: 'string'})
+    @ApiProperty({ type: 'string'})
     @IsString()
     @IsNotEmpty()
     largo_vehiculo: string;
@@ -95,7 +93,7 @@ export class CreateDriverDto {
 
     @ApiProperty({ type: 'string'})
     
- @IsNotEmpty()
+     
     fecha_de_vencimiento_carnet_de_identidad: String;
 
    
@@ -104,7 +102,7 @@ export class CreateDriverDto {
 
     @ApiProperty({ type: 'string' })
     
-    @IsNotEmpty()
+    
     fecha_de_vencimiento_licencia_conductor: String;
 
     
