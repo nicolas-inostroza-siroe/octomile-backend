@@ -40,7 +40,7 @@ export class CreateDriverDto {
 
     @ApiProperty({ type: 'string',  })
     
-    @IsNotEmpty()
+   
     fecha_de_vencimiento_permiso_circulacion: String;
 
   
@@ -48,8 +48,6 @@ export class CreateDriverDto {
     revision_tecnica: string;
 
     @ApiProperty({ type: 'string', })
-    
-    @IsNotEmpty()
     fecha_de_vencimiento_revision_tecnica: String;
 
    
@@ -57,8 +55,6 @@ export class CreateDriverDto {
     soap_al_dia: string;
 
     @ApiProperty({ type: 'string'})
- 
-    @IsNotEmpty()
     fecha_de_vencimiento_soap: string;
 
     
@@ -99,7 +95,7 @@ export class CreateDriverDto {
 
     @ApiProperty({ type: 'string'})
     
-    @IsNotEmpty()
+ @IsNotEmpty()
     fecha_de_vencimiento_carnet_de_identidad: String;
 
    
