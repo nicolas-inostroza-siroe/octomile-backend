@@ -72,15 +72,12 @@ export class CreateDriverDto {
     fotografia4: string;
 
     @ApiProperty({ type: 'string'})
-    @IsString()
     ancho_vehiculo: string;
 
     @ApiProperty({ type: 'string'})
-    @IsString()
     largo_vehiculo: string;
 
     @Column({ type: 'varchar'})
-    @IsString()
     alto_vehiculo: string;
 
 
