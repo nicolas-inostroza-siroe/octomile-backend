@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsISO8601, IsNotEmpty, IsString } from "class-validator";
+import { IsDate, IsISO8601, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Column } from "typeorm";
 
 
@@ -38,7 +38,8 @@ export class CreateDriverDto {
     @ApiProperty({ type: 'string', format: 'binary' })
     permiso_circulacion: string;
 
-    @ApiProperty({ type: 'string',  })
+    @ApiProperty({ type: 'string', })
+    @IsOptional()
     fecha_de_vencimiento_permiso_circulacion: String;
 
   
@@ -46,6 +47,7 @@ export class CreateDriverDto {
     revision_tecnica: string;
 
     @ApiProperty({ type: 'string', })
+    @IsOptional()
     fecha_de_vencimiento_revision_tecnica: String;
 
    
@@ -53,6 +55,7 @@ export class CreateDriverDto {
     soap_al_dia: string;
 
     @ApiProperty({ type: 'string'})
+    @IsOptional()
     fecha_de_vencimiento_soap: string;
 
     
@@ -86,6 +89,7 @@ export class CreateDriverDto {
     Carnet_de_identidad_vigente: string;
 
     @ApiProperty({ type: 'string'}) 
+    @IsOptional()
     fecha_de_vencimiento_carnet_de_identidad: String;
 
    
@@ -93,6 +97,7 @@ export class CreateDriverDto {
     licencia_conductor_vigente: string;
 
     @ApiProperty({ type: 'string' })
+    @IsOptional()
     fecha_de_vencimiento_licencia_conductor: String;
 
     
