@@ -186,4 +186,28 @@ export class DriversService {
         }
         await this.driverRepository.clear();
     }
+    async createMultiple(createDriversDto: CreateDriverDto[]) {
+        const results = [];
+        for (const createDriverDto of createDriversDto) {
+            try {
+                const driverData = {
+                    ...createDriverDto,
+                    fecha_de_vencimiento_permiso_circulacion: String(createDriverDto.fecha_de_vencimiento_permiso_circulacion),
+                    fecha_de_vencimiento_revision_tecnica: String(createDriverDto.fecha_de_vencimiento_revision_tecnica),
+                    fecha_de_vencimiento_carnet_de_identidad: String(createDriverDto.fecha_de_vencimiento_carnet_de_identidad),
+                    fecha_de_vencimiento_licencia_conductor: String(createDriverDto.fecha_de_vencimiento_licencia_conductor),
+                    status: 'active',
+                };
+
+                const driver = this.driverRepository.create(driverData);
+                const savedDriver = await this.driverRepository.save(driver);
+                results.push(savedDriver);
+
+            } catch (error) {
+                throw new Error(`Failed to create driver: ${error.message}`);
+            }
+        }
+        return results;
+    }
+
 }

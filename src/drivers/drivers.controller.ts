@@ -89,4 +89,11 @@ export class DriversController {
         await this.driversService.deleteAll();
         return { message: 'All drivers deleted successfully' };
     }
+
+    @Post('createDrivers')
+    async createDrivers(
+        @Body() createDriversDto: CreateDriverDto[]
+    ) {
+        return await this.driversService.createMultiple(createDriversDto);
+    }
 }
