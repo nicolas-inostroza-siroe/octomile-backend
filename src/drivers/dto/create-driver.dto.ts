@@ -92,6 +92,9 @@ export class CreateDriverDto {
     @IsOptional()
     fecha_de_vencimiento_carnet_de_identidad: String;
 
+    @ApiProperty({ type: 'string'})
+    @IsOptional()
+    rut: string;
    
     @ApiProperty({ type: 'string', format: 'binary' })
     licencia_conductor_vigente: string;
@@ -100,6 +103,9 @@ export class CreateDriverDto {
     @IsOptional()
     fecha_de_vencimiento_licencia_conductor: String;
 
+    @ApiProperty({ type: 'string' })
+    @IsOptional()
+    creado_por: string;
     
     @ApiProperty({ type: 'string', format: 'binary' })
     certificado_antecedentes_vigente: string;

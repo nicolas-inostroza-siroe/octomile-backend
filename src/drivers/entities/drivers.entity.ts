@@ -6,6 +6,9 @@ export class DriversEntity {
     @PrimaryGeneratedColumn()
     id:number;
 
+    @Column({ type: 'varchar',nullable: true})
+    rut: string;
+
     @Column({ type: 'varchar'})
     nombre_apellido: string;
   
@@ -89,6 +92,9 @@ export class DriversEntity {
 
     @Column({type: 'varchar'})
     status: string;
+
+    @Column({type: 'varchar'})
+    creado_por: string;
 
     @CreateDateColumn({ name: 'created_at' })
     created_at: Date;
