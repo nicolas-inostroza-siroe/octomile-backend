@@ -34,22 +34,46 @@ export class DeliveryService {
         }
     }
 
-    async assignDriver(id: number, driverId: number): Promise<void> {
+    async assignDriver(id: number, driverId: number) {
         const driver = await this.driversRepository.findOne({ 
-            where: { id: driverId },
-            select: ['nombre_apellido'] 
+            where: { id: driverId }
         });
-
+    
         if (!driver) {
             throw new NotFoundException(`Driver with ID ${driverId} not found`);
         }
-
-        const result = await this.deliveryRepository.update(id, { 
+    
+        await this.deliveryRepository.update(id, { 
             conductor: driver.nombre_apellido 
         });
         
-        if (result.affected === 0) {
+        const updatedDelivery = await this.deliveryRepository.findOne({
+            where: { id },
+            relations: ['deliveryContains']
+        });
+    
+        if (!updatedDelivery) {
             throw new NotFoundException(`Delivery with ID ${id} not found`);
         }
+    
+        return {
+            delivery: updatedDelivery,
+            driver: driver
+        };
+    }
+
+    async findAll(): Promise<DeliveryEntity[]> {
+        const deliveries = await this.deliveryRepository.find({
+            relations: ['deliveryContains'],
+            order: {
+                id: 'DESC'
+            }
+        });
+
+        if (!deliveries.length) {
+            throw new NotFoundException('No deliveries found');
+        }
+
+        return deliveries;
     }
 }

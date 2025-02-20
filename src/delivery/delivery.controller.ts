@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Post, Param, Patch, Get } from '@nestjs/common';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { DeliveryService } from './delivery.service';
 
@@ -17,16 +17,29 @@ export class DeliveryController {
     }
 
     @Patch(':id/assign-driver/:driverId')
-    async assignDriver(
-        @Param('id') id: number,
-        @Param('driverId') driverId: number
-    ) {
-        await this.deliveryService.assignDriver(id, driverId);
+async assignDriver(
+    @Param('id') id: number,
+    @Param('driverId') driverId: number
+) {
+    const result = await this.deliveryService.assignDriver(id, driverId);
+    return {
+        message: 'Driver assigned successfully',
+        statusCode: 200,
+        data: result
+    };
+}
+
+    @Get()
+    async findAll() {
+        const deliveries = await this.deliveryService.findAll();
         return {
-            message: 'Driver assigned successfully',
-            statusCode: 200
+            message: 'Deliveries retrieved successfully',
+            statusCode: 200,
+            data: deliveries
         };
     }
+
+
 }
 
 
