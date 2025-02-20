@@ -46,8 +46,9 @@ export class DeliveryService {
     
         await this.deliveryRepository.update(id, { 
             conductor: driver.nombre_apellido,
-            patente_real: driver.patente,
-            empresa_asociada: driver.empresa
+        patente_real: driver.patente,
+        patente_generica: driver.patente,
+        empresa_asociada: driver.empresa
         });
         
         const updatedDelivery = await this.deliveryRepository.findOne({
