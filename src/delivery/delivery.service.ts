@@ -62,18 +62,36 @@ export class DeliveryService {
         };
     }
 
-    async findAll(): Promise<DeliveryEntity[]> {
+    async findAll() {
         const deliveries = await this.deliveryRepository.find({
             relations: ['deliveryContains'],
             order: {
                 id: 'DESC'
             }
         });
-
+    
         if (!deliveries.length) {
             throw new NotFoundException('No deliveries found');
         }
-
-        return deliveries;
+    
+        const deliveriesWithDrivers = await Promise.all(
+            deliveries.map(async (delivery) => {
+                if (delivery.conductor) {
+                    const driver = await this.driversRepository.findOne({
+                        where: { nombre_apellido: delivery.conductor }
+                    });
+                    return {
+                        delivery,
+                        driver: driver || null
+                    };
+                }
+                return {
+                    delivery,
+                    driver: null
+                };
+            })
+        );
+    
+        return deliveriesWithDrivers;
     }
 }
