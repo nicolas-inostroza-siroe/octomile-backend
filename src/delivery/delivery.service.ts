@@ -36,7 +36,8 @@ export class DeliveryService {
 
     async assignDriver(id: number, driverId: number) {
         const driver = await this.driversRepository.findOne({ 
-            where: { id: driverId }
+            where: { id: driverId },
+            select: ['id', 'nombre_apellido', 'patente', 'empresa']
         });
     
         if (!driver) {
@@ -44,7 +45,9 @@ export class DeliveryService {
         }
     
         await this.deliveryRepository.update(id, { 
-            conductor: driver.nombre_apellido 
+            conductor: driver.nombre_apellido,
+            patente_real: driver.patente,
+            empresa_asociada: driver.empresa
         });
         
         const updatedDelivery = await this.deliveryRepository.findOne({
