@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsOptional, IsString } from "class-validator";
 import { DeliveryContainDto } from "./delivery-contain.dto";
-import { DeliveryEntity } from "../entities/delivery.entity";
+import { DeliveryEntity } from "../entities/sessiondelivery.entity";
 
 
 export class CreateDeliveryDto{

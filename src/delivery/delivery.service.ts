@@ -1,23 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DeliveryEntity } from './entities/delivery.entity';
-import { DeliveryContainEntity } from './entities/delivery-contain.entity';
+import { sessionDeliveryEntity } from './entities/sessiondelivery.entity';
+import { sessionDeliveryRoutesEntity } from './entities/sessionDeliveryRoutes.entity';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { DriversEntity } from '../drivers/entities/drivers.entity';
 
 @Injectable()
 export class DeliveryService {
     constructor(
-        @InjectRepository(DeliveryEntity)
-        private readonly deliveryRepository: Repository<DeliveryEntity>,
-        @InjectRepository(DeliveryContainEntity)
-        private readonly deliveryContainRepository: Repository<DeliveryContainEntity>,
+        @InjectRepository(sessionDeliveryEntity)
+        private readonly deliveryRepository: Repository<sessionDeliveryEntity>,
+        @InjectRepository(sessionDeliveryRoutesEntity)
+        private readonly deliveryContainRepository: Repository<sessionDeliveryRoutesEntity>,
         @InjectRepository(DriversEntity)
         private readonly driversRepository: Repository<DriversEntity>,
     ) {}
 
-    async create(createDeliveryDto: CreateDeliveryDto): Promise<DeliveryEntity> {
+    async create(createDeliveryDto: CreateDeliveryDto): Promise<sessionDeliveryEntity> {
         try {
             const delivery = this.deliveryRepository.create({
                 ...createDeliveryDto,
@@ -46,9 +46,9 @@ export class DeliveryService {
     
         await this.deliveryRepository.update(id, { 
             conductor: driver.nombre_apellido,
-        patente_real: driver.patente,
-        patente_generica: driver.patente,
-        empresa_asociada: driver.empresa
+            patente_real: driver.patente,
+            patente_generica: driver.patente,
+            empresa_asociada: driver.empresa
         });
         
         const updatedDelivery = await this.deliveryRepository.findOne({
@@ -65,7 +65,7 @@ export class DeliveryService {
             driver: driver
         };
     }
-
+    
     async findAll() {
         const deliveries = await this.deliveryRepository.find({
             relations: ['deliveryContains'],
