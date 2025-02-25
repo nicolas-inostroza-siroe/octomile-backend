@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { RouteDetailsDto } from "./routeDetails.dto";
+import { Type } from "class-transformer";
 
 
 export class sessionDeliveryRoutesDto{
@@ -33,5 +35,12 @@ gestor:string ;
 @IsString()
 @IsOptional()
 gestion:string;
+
+@ApiProperty({ type: [RouteDetailsDto], required: false })
+@IsArray()
+@ValidateNested({ each: true })
+@Type(() => RouteDetailsDto)
+@IsOptional()
+routeDetails?: RouteDetailsDto[];
 
 }

@@ -27,6 +27,8 @@ export class sessionDeliveryRoutesEntity {
     @Column()
     gestion:string;
 
+    
+
    }
 
 

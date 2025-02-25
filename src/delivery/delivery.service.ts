@@ -6,6 +6,8 @@ import { sessionDeliveryRoutesEntity } from './entities/sessionDeliveryRoutes.en
 import { DriversEntity } from '../drivers/entities/drivers.entity';
 import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
 import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
+import { RouteDetailsDto } from './dto/routeDetails.dto';
+import { RouteDetailsEntity } from './entities/RouteDetails.entity';
 
 @Injectable()
 export class DeliveryService {
@@ -16,6 +18,8 @@ export class DeliveryService {
         private readonly deliveryContainRepository: Repository<sessionDeliveryRoutesEntity>,
         @InjectRepository(DriversEntity)
         private readonly driversRepository: Repository<DriversEntity>,
+        @InjectRepository(RouteDetailsEntity)
+        private readonly routeDetailsRepository: Repository<RouteDetailsEntity>,
     ) {}
 
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
@@ -51,4 +55,40 @@ export class DeliveryService {
 
         return await this.deliveryContainRepository.save(route);
     }
+
+    async addRouteDetails(
+        routeId: number,
+        routeDetailsDto: RouteDetailsDto
+    ) {
+        const route = await this.deliveryContainRepository.findOne({
+            where: { id: routeId },
+            relations: ['routeDetails']
+        });
+
+        if (!route) {
+            throw new NotFoundException(`Route with ID ${routeId} not found`);
+        }
+
+        const routeDetail = this.routeDetailsRepository.create({
+            ...routeDetailsDto,
+        });
+
+        return await this.routeDetailsRepository.save(routeDetail);
+    }
+
+    async findAll(): Promise<sessionDeliveryEntity[]> {
+        const sessions = await this.deliveryRepository.find({
+            relations: ['routes', 'routes.routeDetails'],
+            order: {
+                id: 'DESC'
+            }
+        });
+
+        if (!sessions.length) {
+            throw new NotFoundException('No session deliveries found');
+        }
+
+        return sessions;
+    }
+
 }
