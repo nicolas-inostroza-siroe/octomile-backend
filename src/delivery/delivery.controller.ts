@@ -1,45 +1,37 @@
 import { Body, Controller, Post, Param, Patch, Get } from '@nestjs/common';
-import { CreateDeliveryDto } from './dto/create-delivery.dto';
+import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
+import { sessionDeliveryRoutesDto} from './dto/sessionDeliveryRoute.dto';
 import { DeliveryService } from './delivery.service';
 
 @Controller('delivery')
 export class DeliveryController {
     constructor(private readonly deliveryService: DeliveryService) {}
 
-    @Post('create')
-    async create(@Body() createDeliveryDto: CreateDeliveryDto) {
-        const delivery = await this.deliveryService.create(createDeliveryDto);
+    @Post('create-session')
+    async createSessionDelivery(@Body() createSessionDeliveryDto: CreateSesionDeliveryDto) {
+        const sessionDelivery = await this.deliveryService.createSessionDelivery(createSessionDeliveryDto);
         return {
-            message: 'Delivery created successfully',
+            message: 'Session delivery created successfully',
             statusCode: 201,
-            data: delivery,
+            data: sessionDelivery
         };
     }
 
-    @Patch(':id/assign-driver/:driverId')
-async assignDriver(
-    @Param('id') id: number,
-    @Param('driverId') driverId: number
-) {
-    const result = await this.deliveryService.assignDriver(id, driverId);
-    return {
-        message: 'Driver assigned successfully',
-        statusCode: 200,
-        data: result
-    };
-}
-
-    @Get()
-    async findAll() {
-        const deliveries = await this.deliveryService.findAll();
+    @Post('session/:id/routes')
+    async addDeliveryRoute(
+        @Param('id') sessionId: number,
+        @Body() sessionDeliveryRouteDto: sessionDeliveryRoutesDto
+    ) {
+        const route = await this.deliveryService.createSessionDeliveryRoute(
+            sessionId,
+            sessionDeliveryRouteDto
+        );
         return {
-            message: 'Deliveries retrieved successfully',
-            statusCode: 200,
-            data: deliveries
+            message: 'Delivery route created successfully',
+            statusCode: 201,
+            data: route
         };
     }
-
-
 }
 
 

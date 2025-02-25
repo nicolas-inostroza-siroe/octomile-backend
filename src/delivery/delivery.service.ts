@@ -3,8 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { sessionDeliveryEntity } from './entities/sessiondelivery.entity';
 import { sessionDeliveryRoutesEntity } from './entities/sessionDeliveryRoutes.entity';
-import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { DriversEntity } from '../drivers/entities/drivers.entity';
+import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
+import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
 
 @Injectable()
 export class DeliveryService {
@@ -17,85 +18,37 @@ export class DeliveryService {
         private readonly driversRepository: Repository<DriversEntity>,
     ) {}
 
-    async create(createDeliveryDto: CreateDeliveryDto): Promise<sessionDeliveryEntity> {
-        try {
-            const delivery = this.deliveryRepository.create({
-                ...createDeliveryDto,
-            });
-            const deliveryContains = createDeliveryDto.deliveryContains.map((deliveryContain) => {
-                return this.deliveryContainRepository.create({
-                    ...deliveryContain,
-                });
-            });
-            delivery.deliveryContains = deliveryContains;
-            return await this.deliveryRepository.save(delivery);
-        } catch (error) {
-            throw new Error('Error creating delivery');
-        }
-    }
+    async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
+        const sessionDelivery = this.deliveryRepository.create({
+            ...createSessionDeliveryDto,
+            fecha: new Date(),
+        });
 
-    async assignDriver(id: number, driverId: number) {
-        const driver = await this.driversRepository.findOne({ 
-            where: { id: driverId },
-            select: ['id', 'nombre_apellido', 'patente', 'empresa']
-        });
-    
-        if (!driver) {
-            throw new NotFoundException(`Driver with ID ${driverId} not found`);
-        }
-    
-        await this.deliveryRepository.update(id, { 
-            conductor: driver.nombre_apellido,
-            patente_real: driver.patente,
-            patente_generica: driver.patente,
-            empresa_asociada: driver.empresa
-        });
+        const savedSession = await this.deliveryRepository.save(sessionDelivery);
         
-        const updatedDelivery = await this.deliveryRepository.findOne({
-            where: { id },
-            relations: ['deliveryContains']
-        });
-    
-        if (!updatedDelivery) {
-            throw new NotFoundException(`Delivery with ID ${id} not found`);
-        }
-    
         return {
-            delivery: updatedDelivery,
-            driver: driver
+            message: 'Session delivery created successfully',
+            data: savedSession
         };
     }
-    
-    async findAll() {
-        const deliveries = await this.deliveryRepository.find({
-            relations: ['deliveryContains'],
-            order: {
-                id: 'DESC'
-            }
+
+    async createSessionDeliveryRoute(
+        sessionId: number,
+        sessionDeliveryRouteDto: sessionDeliveryRoutesDto
+    ) {
+        const session = await this.deliveryRepository.findOne({
+            where: { id: sessionId }
         });
-    
-        if (!deliveries.length) {
-            throw new NotFoundException('No deliveries found');
+
+        if (!session) {
+            throw new NotFoundException(`Session with ID ${sessionId} not found`);
         }
-    
-        const deliveriesWithDrivers = await Promise.all(
-            deliveries.map(async (delivery) => {
-                if (delivery.conductor) {
-                    const driver = await this.driversRepository.findOne({
-                        where: { nombre_apellido: delivery.conductor }
-                    });
-                    return {
-                        delivery,
-                        driver: driver || null
-                    };
-                }
-                return {
-                    delivery,
-                    driver: null
-                };
-            })
-        );
-    
-        return deliveriesWithDrivers;
+
+        const route = this.deliveryContainRepository.create({
+            ...sessionDeliveryRouteDto,
+            sessionDelivery_id: session.id
+        });
+
+        return await this.deliveryContainRepository.save(route);
     }
 }

@@ -18,7 +18,14 @@ export class sessionDeliveryRoutesEntity {
     @Column()
     sessionDelivery_id: number;
 
-    //Parametros faltantes
+    @Column()
+    status:string;
+
+    @Column()
+    gestor:string ;
+
+    @Column()
+    gestion:string;
 
    }
 
