@@ -143,7 +143,7 @@ export class DeliveryService {
     async findRoutesBySessionId(sessionId: number) {
         const routes = await this.deliveryContainRepository.find({
             where: { sessionDelivery_id: sessionId },
-            relations: ['routeDetails'], });
+    });
 
         if (!routes.length) {
             throw new NotFoundException({
