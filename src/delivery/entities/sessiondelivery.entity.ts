@@ -11,7 +11,7 @@ export class sessionDeliveryEntity {
     nombre: string;
 
     @Column()
-    fecha: Date;
+    fecha: string;
 
     @Column()
     propietario: string
