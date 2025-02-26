@@ -58,6 +58,9 @@ export class DeliveryService {
         };
     }
 
+    
+
+
     async createSessionDeliveryRoute(
         sessionId: number,
         sessionDeliveryRouteDto: sessionDeliveryRoutesDto
@@ -143,5 +146,43 @@ export class DeliveryService {
             message: 'Session deliveries retrieved successfully',
             data: sessions
         } as any;
+    }
+
+    async findRoutesBySessionId(sessionId: number) {
+        const routes = await this.deliveryContainRepository.find({
+            where: { sessionDelivery_id: sessionId },
+            relations: ['routeDetails'], });
+
+        if (!routes.length) {
+            throw new NotFoundException({
+                status: HttpStatus.NOT_FOUND,
+                message: `No routes found for session with ID ${sessionId}`,
+            });
+        }
+
+        return {
+            status: HttpStatus.OK,
+            message: 'Routes retrieved successfully',
+            data: routes,
+        };
+    }
+
+    async findRouteDetailsByRouteId(routeId: number) {
+        const routeDetails = await this.routeDetailsRepository.find({
+            where: { sessionDeliveryRoutesId: routeId },
+        });
+
+        if (!routeDetails.length) {
+            throw new NotFoundException({
+                status: HttpStatus.NOT_FOUND,
+                message: `No route details found for route with ID ${routeId}`,
+            });
+        }
+
+        return {
+            status: HttpStatus.OK,
+            message: 'Route details retrieved successfully',
+            data: routeDetails,
+        };
     }
 }

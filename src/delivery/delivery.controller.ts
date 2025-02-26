@@ -1,6 +1,6 @@
-import { Body, Controller, Post, Param, Patch, Get } from '@nestjs/common';
+import { Body, Controller, Post, Param, Get, HttpStatus } from '@nestjs/common';
 import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
-import { sessionDeliveryRoutesDto} from './dto/sessionDeliveryRoute.dto';
+import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
 import { DeliveryService } from './delivery.service';
 import { RouteDetailsDto } from './dto/routeDetails.dto';
 
@@ -13,8 +13,38 @@ export class DeliveryController {
         const sessionDelivery = await this.deliveryService.createSessionDelivery(createSessionDeliveryDto);
         return {
             message: 'Session delivery created successfully',
-            statusCode: 201,
+            statusCode: HttpStatus.OK,
             data: sessionDelivery
+        };
+    }
+
+    @Get('sessions')
+    async getAllSessions() {
+        const sessions = await this.deliveryService.findAll();
+        return {
+            status: HttpStatus.OK,
+            message: 'Session deliveries retrieved successfully',
+            data: sessions
+        };
+    }
+
+    @Get('session/:id/routes')
+    async getRoutesBySessionId(@Param('id') sessionId: number) {
+        const routes = await this.deliveryService.findRoutesBySessionId(sessionId);
+        return {
+            status: HttpStatus.OK,
+            message: 'Routes retrieved successfully',
+            data: routes
+        };
+    }
+
+    @Get('route/:id/details')
+    async getRouteDetailsByRouteId(@Param('id') routeId: number) {
+        const routeDetails = await this.deliveryService.findRouteDetailsByRouteId(routeId);
+        return {
+            status: HttpStatus.OK,
+            message: 'Route details retrieved successfully',
+            data: routeDetails
         };
     }
 
@@ -29,7 +59,7 @@ export class DeliveryController {
         );
         return {
             message: 'Delivery route created successfully',
-            statusCode: 201,
+            statusCode: HttpStatus.OK,
             data: route
         };
     }
@@ -42,7 +72,7 @@ export class DeliveryController {
         const routeDetail = await this.deliveryService.addRouteDetails(routeId, routeDetailsDto);
         return {
             message: 'Route detail added successfully',
-            statusCode: 201,
+            statusCode: HttpStatus.OK,
             data: routeDetail
         };
     }
