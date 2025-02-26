@@ -26,7 +26,7 @@ export class RouteDetailsEntity {
     fuePinchado:boolean;
 
     @Column()
-    fechaPinchado: Date;
+    fechaPinchado: string;
 
     @Column()
     codigoPinchazo: string;

@@ -25,7 +25,7 @@ export class DeliveryService {
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
         const sessionDelivery = this.deliveryRepository.create({
             ...createSessionDeliveryDto,
-            fecha: new Date(createSessionDeliveryDto.fecha),
+            fecha: createSessionDeliveryDto.fecha, // No need to convert to Date
         });
 
         const savedSession = await this.deliveryRepository.save(sessionDelivery);
@@ -40,9 +40,11 @@ export class DeliveryService {
             const savedRoute = await this.deliveryContainRepository.save(route);
 
             for (const guiaDto of routeDto.guias) {
+             
                 const routeDetail = this.routeDetailsRepository.create({
                     ...guiaDto,
                     sessionDeliveryRoutesId: savedRoute.id,
+                    fechaPinchado: guiaDto.fechaPinchado || null // Keep as string
                 });
 
                 await this.routeDetailsRepository.save(routeDetail);

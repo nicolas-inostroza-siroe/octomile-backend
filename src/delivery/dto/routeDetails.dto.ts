@@ -25,8 +25,8 @@ export class RouteDetailsDto {
 
     @ApiProperty()
     @IsOptional()
-    @IsDate()
-    fechaPinchado?: Date;
+    @IsString()
+    fechaPinchado?: string;
 
     @ApiProperty()
     @IsOptional()

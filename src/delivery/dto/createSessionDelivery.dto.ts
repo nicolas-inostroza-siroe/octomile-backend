@@ -12,8 +12,8 @@ export class CreateSesionDeliveryDto{
     nombre: string;
 
     @ApiProperty()
-    @IsDate()
-    fecha: Date;
+    @IsString()
+    fecha: string;
 
     @ApiProperty()
     @IsString()
