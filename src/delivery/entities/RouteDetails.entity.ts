@@ -25,19 +25,19 @@ export class RouteDetailsEntity {
     @Column()
     fuePinchado:boolean;
 
-    @Column()
+    @Column({nullable:true})
     fechaPinchado: string;
 
-    @Column()
+    @Column({nullable:true})
     codigoPinchazo: string;
 
-    @Column()
+    @Column({nullable:true})
     pinchadoPor: string;
 
-    @Column()
+    @Column({nullable:true})
     estado: string;
 
-    @Column()
+    @Column({nullable:true})
     userId: string;
 
 }
