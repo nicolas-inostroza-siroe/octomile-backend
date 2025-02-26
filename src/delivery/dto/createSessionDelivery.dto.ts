@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { IsArray, IsDate, IsOptional, IsString, ValidateNested } from "class-validator";
+import { sessionDeliveryRoutesDto } from "./sessionDeliveryRoute.dto";
+import { Type } from "class-transformer";
 
 
 
@@ -10,11 +12,17 @@ export class CreateSesionDeliveryDto{
     nombre: string;
 
     @ApiProperty()
-    @IsOptional()
+    @IsDate()
     fecha: Date;
 
     @ApiProperty()
     @IsString()
     propietario: string;
+
+    @ApiProperty({ type: [sessionDeliveryRoutesDto] })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => sessionDeliveryRoutesDto)
+    routes: sessionDeliveryRoutesDto[];
 
 }

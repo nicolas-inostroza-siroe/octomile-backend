@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsOptional, IsDate } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsDate, IsBoolean } from 'class-validator';
 
 export class RouteDetailsDto {
     @ApiProperty()
@@ -20,8 +20,8 @@ export class RouteDetailsDto {
 
     @ApiProperty()
     @IsOptional()
-    @IsString()
-    fuePinchado?: string;
+    @IsBoolean()
+    fuePinchado?: boolean;
 
     @ApiProperty()
     @IsOptional()
@@ -36,7 +36,7 @@ export class RouteDetailsDto {
     @ApiProperty()
     @IsOptional()
     @IsString()
-    pinchadoPor?: string;
+    PinchadoPor?: string;
 
     @ApiProperty()
     @IsOptional()

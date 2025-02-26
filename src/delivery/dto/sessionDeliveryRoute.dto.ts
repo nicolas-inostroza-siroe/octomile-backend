@@ -36,11 +36,10 @@ gestor:string ;
 @IsOptional()
 gestion:string;
 
-@ApiProperty({ type: [RouteDetailsDto], required: false })
+@ApiProperty({ type: [RouteDetailsDto] })
 @IsArray()
 @ValidateNested({ each: true })
 @Type(() => RouteDetailsDto)
-@IsOptional()
-routeDetails?: RouteDetailsDto[];
+guias: RouteDetailsDto[];
 
 }

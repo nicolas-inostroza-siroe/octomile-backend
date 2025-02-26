@@ -25,11 +25,31 @@ export class DeliveryService {
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
         const sessionDelivery = this.deliveryRepository.create({
             ...createSessionDeliveryDto,
-            fecha: new Date(),
+            fecha: new Date(createSessionDeliveryDto.fecha),
         });
 
         const savedSession = await this.deliveryRepository.save(sessionDelivery);
-        
+
+        for (const routeDto of createSessionDeliveryDto.routes) {
+            const route = this.deliveryContainRepository.create({
+                numero: routeDto.numero,
+                patente: routeDto.patente,
+                sessionDelivery_id: savedSession.id,
+            });
+
+            const savedRoute = await this.deliveryContainRepository.save(route);
+
+            for (const guiaDto of routeDto.guias) {
+                const routeDetail = this.routeDetailsRepository.create({
+                    ...guiaDto,
+                    sessionDeliveryRoutesId: savedRoute.id,
+                    fuePinchado: guiaDto.fuePinchado?.toString()
+                });
+
+                await this.routeDetailsRepository.save(routeDetail);
+            }
+        }
+
         return {
             message: 'Session delivery created successfully',
             data: savedSession
@@ -71,6 +91,8 @@ export class DeliveryService {
 
         const routeDetail = this.routeDetailsRepository.create({
             ...routeDetailsDto,
+            sessionDeliveryRoutesId: route.id,
+            fuePinchado: routeDetailsDto.fuePinchado?.toString()
         });
 
         return await this.routeDetailsRepository.save(routeDetail);
