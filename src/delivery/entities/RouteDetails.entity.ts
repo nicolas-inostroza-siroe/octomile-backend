@@ -10,34 +10,33 @@ export class RouteDetailsEntity {
     @Column()
     sessionDeliveryRoutesId: number;
 
-    @Column()
+    @Column('float')
     numProduct:number;
 
-    @Column()
+    @Column('varchar')
     bindProduct: string;
 
-    @Column()
+    @Column('varchar')
     patenteProducto: string;
 
-    @Column()
+    @Column('varchar')
     codigoProducto: string;
 
-    @Column()
-    fuePinchado:boolean;
+    @Column({ type: 'bool', default: false })
+    fuePinchado: boolean;
 
-    @Column({nullable:true})
+    @Column({ type: 'varchar', nullable: true, default: null })
     fechaPinchado: string;
 
-    @Column({nullable:true})
+    @Column({ type: 'varchar', nullable: true, default: null })
     codigoPinchazo: string;
 
-    @Column({nullable:true})
+    @Column({ type: 'varchar', nullable: true, default: null })
     pinchadoPor: string;
 
-    @Column({nullable:true})
+    @Column({ type: 'varchar', nullable: true, default: null })
     estado: string;
 
-    @Column({nullable:true})
+    @Column({ type: 'varchar', nullable: true, default: null })
     userId: string;
-
 }

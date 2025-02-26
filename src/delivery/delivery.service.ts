@@ -44,7 +44,7 @@ export class DeliveryService {
                 const routeDetail = this.routeDetailsRepository.create({
                     ...guiaDto,
                     sessionDeliveryRoutesId: savedRoute.id,
-                    fechaPinchado: guiaDto.fechaPinchado || null // Keep as string
+                    fechaPinchado: guiaDto.fechaPinchado 
                 });
 
                 await this.routeDetailsRepository.save(routeDetail);

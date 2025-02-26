@@ -21,30 +21,30 @@ export class RouteDetailsDto {
     @ApiProperty()
     @IsOptional()
     @IsBoolean()
-    fuePinchado?: boolean;
+    fuePinchado: boolean;
 
     @ApiProperty()
     @IsOptional()
     @IsString()
-    fechaPinchado?: string;
+    fechaPinchado: string;
 
     @ApiProperty()
     @IsOptional()
     @IsString()
-    codigoPinchazo?: string;
+    codigoPinchazo: string;
 
     @ApiProperty()
     @IsOptional()
     @IsString()
-    PinchadoPor?: string;
+    PinchadoPor: string;
 
     @ApiProperty()
     @IsOptional()
     @IsString()
-    estado?: string;
+    estado: string;
 
     @ApiProperty()
     @IsOptional()
     @IsString()
-    userId?: string;
+    userId: string;
 }
