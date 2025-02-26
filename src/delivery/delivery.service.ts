@@ -43,7 +43,6 @@ export class DeliveryService {
                 const routeDetail = this.routeDetailsRepository.create({
                     ...guiaDto,
                     sessionDeliveryRoutesId: savedRoute.id,
-                    fuePinchado: guiaDto.fuePinchado?.toString()
                 });
 
                 await this.routeDetailsRepository.save(routeDetail);
@@ -91,8 +90,7 @@ export class DeliveryService {
 
         const routeDetail = this.routeDetailsRepository.create({
             ...routeDetailsDto,
-            sessionDeliveryRoutesId: route.id,
-            fuePinchado: routeDetailsDto.fuePinchado?.toString()
+            
         });
 
         return await this.routeDetailsRepository.save(routeDetail);

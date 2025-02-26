@@ -46,15 +46,5 @@ export class RouteDetailsDto {
     @ApiProperty()
     @IsOptional()
     @IsString()
-    user?: string;
-
-    @ApiProperty()
-    @IsOptional()
-    @IsString()
-    userName?: string;
-
-    @ApiProperty()
-    @IsOptional()
-    @IsString()
-    pinchadoPorName?: string;
+    userId?: string;
 }

@@ -23,7 +23,7 @@ export class RouteDetailsEntity {
     codigoProducto: string;
 
     @Column()
-    fuePinchado:string;
+    fuePinchado:boolean;
 
     @Column()
     fechaPinchado: Date;
@@ -38,12 +38,6 @@ export class RouteDetailsEntity {
     estado: string;
 
     @Column()
-    user: string;
-
-    @Column()
-    userName: string;
-
-    @Column()
-    pinchadoPorName: string;
+    userId: string;
 
 }
