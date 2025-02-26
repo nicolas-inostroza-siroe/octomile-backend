@@ -155,11 +155,7 @@ export class DeliveryService {
             });
         }
 
-        return {
-            status: HttpStatus.OK,
-            message: 'Routes retrieved successfully',
-            data: routes,
-        };
+        return routes
     }
 
     async findRouteDetailsByRouteId(routeId: number) {
@@ -174,10 +170,6 @@ export class DeliveryService {
             });
         }
 
-        return {
-            status: HttpStatus.OK,
-            message: 'Route details retrieved successfully',
-            data: routeDetails,
-        };
+        return routeDetails;
     }
 }
