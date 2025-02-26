@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { sessionDeliveryEntity } from './entities/sessiondelivery.entity';
@@ -25,7 +25,7 @@ export class DeliveryService {
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
         const sessionDelivery = this.deliveryRepository.create({
             ...createSessionDeliveryDto,
-            fecha: createSessionDeliveryDto.fecha, // No need to convert to Date
+            fecha: createSessionDeliveryDto.fecha, // Dates are now strings
         });
 
         const savedSession = await this.deliveryRepository.save(sessionDelivery);
@@ -41,11 +41,10 @@ export class DeliveryService {
             const savedRoute = await this.deliveryContainRepository.save(route);
 
             for (const guiaDto of routeDto.guias) {
-             
                 const routeDetail = this.routeDetailsRepository.create({
                     ...guiaDto,
                     sessionDeliveryRoutesId: savedRoute.id,
-                    fechaPinchado: guiaDto.fechaPinchado 
+                    fechaPinchado: guiaDto.fechaPinchado || null
                 });
 
                 await this.routeDetailsRepository.save(routeDetail);
@@ -53,6 +52,7 @@ export class DeliveryService {
         }
 
         return {
+            status: HttpStatus.OK,
             message: 'Session delivery created successfully',
             data: savedSession
         };
@@ -67,7 +67,10 @@ export class DeliveryService {
         });
 
         if (!session) {
-            throw new NotFoundException(`Session with ID ${sessionId} not found`);
+            throw new NotFoundException({
+                status: HttpStatus.NOT_FOUND,
+                message: `Session with ID ${sessionId} not found`
+            });
         }
 
         const route = this.deliveryContainRepository.create({
@@ -75,7 +78,13 @@ export class DeliveryService {
             sessionDelivery_id: session.id
         });
 
-        return await this.deliveryContainRepository.save(route);
+        const savedRoute = await this.deliveryContainRepository.save(route);
+
+        return {
+            status: HttpStatus.OK,
+            message: 'Delivery route created successfully',
+            data: savedRoute
+        };
     }
 
     async addRouteDetails(
@@ -88,15 +97,30 @@ export class DeliveryService {
         });
 
         if (!route) {
-            throw new NotFoundException(`Route with ID ${routeId} not found`);
+            throw new NotFoundException({
+                status: HttpStatus.NOT_FOUND,
+                message: `Route with ID ${routeId} not found`
+            });
         }
 
         const routeDetail = this.routeDetailsRepository.create({
             ...routeDetailsDto,
-            
+            sessionDeliveryRoutesId: route.id,
+            fechaPinchado: routeDetailsDto.fechaPinchado || null,
+            codigoPinchazo: routeDetailsDto.codigoPinchazo || null,
+            pinchadoPor: routeDetailsDto.PinchadoPor || null,
+            estado: routeDetailsDto.estado || null,
+            userId: routeDetailsDto.userId || null,
+            fuePinchado: routeDetailsDto.fuePinchado || false
         });
 
-        return await this.routeDetailsRepository.save(routeDetail);
+        const savedDetail = await this.routeDetailsRepository.save(routeDetail);
+
+        return {
+            status: HttpStatus.OK,
+            message: 'Route detail added successfully',
+            data: savedDetail
+        };
     }
 
     async findAll(): Promise<sessionDeliveryEntity[]> {
@@ -108,10 +132,16 @@ export class DeliveryService {
         });
 
         if (!sessions.length) {
-            throw new NotFoundException('No session deliveries found');
+            throw new NotFoundException({
+                status: HttpStatus.NOT_FOUND,
+                message: 'No session deliveries found'
+            });
         }
 
-        return sessions;
+        return {
+            status: HttpStatus.OK,
+            message: 'Session deliveries retrieved successfully',
+            data: sessions
+        } as any;
     }
-
 }
