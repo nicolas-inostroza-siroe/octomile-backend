@@ -35,6 +35,7 @@ export class DeliveryService {
                 numero: routeDto.numero,
                 patente: routeDto.patente,
                 sessionDelivery_id: savedSession.id,
+                status: routeDto.status,
             });
 
             const savedRoute = await this.deliveryContainRepository.save(route);
