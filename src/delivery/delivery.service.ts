@@ -128,10 +128,6 @@ export class DeliveryService {
 
     async findAll(): Promise<sessionDeliveryEntity[]> {
         const sessions = await this.deliveryRepository.find({
-            relations: ['routes', 'routes.routeDetails'],
-            order: {
-                id: 'DESC'
-            }
         });
 
         if (!sessions.length) {

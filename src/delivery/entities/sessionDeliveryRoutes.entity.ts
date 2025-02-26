@@ -27,7 +27,7 @@ export class sessionDeliveryRoutesEntity {
     @Column({ type: 'varchar', nullable: true, default: null })
     gestion:string;
 
-    
+
 
    }
 
