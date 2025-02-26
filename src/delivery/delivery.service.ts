@@ -137,11 +137,7 @@ export class DeliveryService {
             });
         }
 
-        return {
-            status: HttpStatus.OK,
-            message: 'Session deliveries retrieved successfully',
-            data: sessions
-        } as any;
+         return sessions;
     }
 
     async findRoutesBySessionId(sessionId: number) {
