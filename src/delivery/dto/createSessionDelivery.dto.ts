@@ -13,6 +13,7 @@ export class CreateSesionDeliveryDto{
 
     @ApiProperty()
     @IsString()
+    @IsOptional()
     fecha: string;
 
     @ApiProperty()
