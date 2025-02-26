@@ -21,10 +21,10 @@ export class sessionDeliveryRoutesEntity {
     @Column()
     status:string;
 
-    @Column()
-    gestor:string ;
+    @Column({ type: 'varchar', nullable: true, default: null })
+    gestor:string;
 
-    @Column()
+    @Column({ type: 'varchar', nullable: true, default: null })
     gestion:string;
 
     
