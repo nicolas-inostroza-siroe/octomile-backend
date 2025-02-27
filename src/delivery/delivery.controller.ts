@@ -22,9 +22,9 @@ export class DeliveryController {
     async getAllSessions() {
         const sessions = await this.deliveryService.findAll();
         return {
-            status: HttpStatus.OK,
-            message: 'Session deliveries retrieved successfully',
-            data: sessions
+            status: sessions.status,
+            message: sessions.message,
+            data: sessions.data
         };
     }
 
