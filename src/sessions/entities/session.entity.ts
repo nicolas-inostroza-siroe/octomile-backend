@@ -23,6 +23,8 @@ export class SessionEntity {
     @Column('varchar')
     propietario: string;
 
+    @Column('varchar')
+    sessionDeliveryId: string;
     
 
     @OneToMany(

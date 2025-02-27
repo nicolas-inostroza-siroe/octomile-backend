@@ -1,6 +1,6 @@
 import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException, InternalServerErrorException, ConflictException, forwardRef } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
-import { Repository, In } from 'typeorm';
+import { Repository, In, IsNull } from 'typeorm';
 import { SessionDetailEntity, SessionEntity } from './entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChangeStatusDto } from './dto/change-status.dto';
@@ -516,6 +516,18 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
     return { message: 'all sessions with the active status', code: HttpStatus.OK, sessions }
   }
 
+  async getSessionsWithoutDelivery(): Promise<{ status: number; message: string; data: SessionEntity[] }> {
+    const sessions = await this.sessionsRepository.find({
+        where: { sessionDeliveryId: IsNull() },
+        order: { id: 'DESC' }
+    });
+
+    return {
+        status: HttpStatus.OK,
+        message: sessions.length ? 'Sessions retrieved successfully' : 'No sessions found without delivery',
+        data: sessions
+    };
+}
 
 
 

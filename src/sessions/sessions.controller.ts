@@ -83,6 +83,15 @@ export class SessionsController {
     return this.sessionsService.getAllActives();
   }
 
+  @Get('without-delivery')
+    async getSessionsWithoutDelivery() {
+        const result = await this.sessionsService.getSessionsWithoutDelivery();
+        return {
+            status: result.status,
+            message: result.message,
+            data: result.data
+        };
+    }
 
 }
 
