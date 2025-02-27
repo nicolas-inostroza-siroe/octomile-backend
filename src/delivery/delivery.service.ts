@@ -129,21 +129,26 @@ export class DeliveryService {
         };
     }
 
-    async findAll(): Promise<sessionDeliveryEntity[]> {
+    async findAll(): Promise<{ status: number; message: string; data: sessionDeliveryEntity[] }> {
         const sessions = await this.deliveryRepository.find({
             order: {
                 id: 'DESC'
             }
         });
-
+    
         if (!sessions.length) {
-            throw new NotFoundException({
-                status: HttpStatus.NOT_FOUND,
-                message: 'No session deliveries found'
-            });
+            return {
+                status: HttpStatus.OK,
+                message: 'No session deliveries found',
+                data: []
+            };
         }
-
-         return sessions;
+    
+        return {
+            status: HttpStatus.OK,
+            message: 'Session deliveries retrieved successfully',
+            data: sessions
+        };
     }
 
     async findRoutesBySessionId(sessionId: number) {
