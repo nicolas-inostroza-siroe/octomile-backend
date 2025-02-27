@@ -213,10 +213,11 @@ export class DriversService {
     async findActiveDrivers() {
         const drivers = await this.driverRepository.find({
             where: { status: 'active' },
-            select: ['nombre_apellido', 'empresa', 'patente', 'tipo']
+            select: ['id','nombre_apellido', 'empresa', 'patente', 'tipo']
         });
 
         return drivers.map(driver => ({
+            id:driver.id,
             nombre_apellido: driver.nombre_apellido,
             empresa: driver.empresa,
             patente: driver.patente,
