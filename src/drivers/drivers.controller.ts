@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseInterceptors, UploadedFiles, Get, Patch, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Post, Body, UseInterceptors, UploadedFiles, Get, Patch, Param, Put, Delete, HttpStatus } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { DriversService } from './drivers.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
@@ -95,5 +95,15 @@ export class DriversController {
         @Body() createDriversDto: CreateDriverDto[]
     ) {
         return await this.driversService.createMultiple(createDriversDto);
+    }
+
+    @Get('active')
+    async getActiveDrivers() {
+        const drivers = await this.driversService.findActiveDrivers();
+        return {
+            status: HttpStatus.OK,
+            message: 'Active drivers retrieved successfully',
+            data: drivers
+        };
     }
 }

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { DriversEntity } from "src/drivers/entities/drivers.entity";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
 
@@ -13,22 +14,28 @@ export class sessionDeliveryRoutesEntity {
     numero: string;
 
     @Column()
-    patente:string;
+    patente: string;
 
     @Column()
     sessionDelivery_id: number;
 
     @Column()
-    status:string;
+    status: string;
 
     @Column({ type: 'varchar', nullable: true, default: null })
-    gestor:string;
+    gestor: string;
 
     @Column({ type: 'varchar', nullable: true, default: null })
-    gestion:string;
+    gestion: string;
+
+    @Column({ type: 'int', nullable: true })
+    driverId: number;
 
 
+    @ManyToOne(() => DriversEntity)
+    @JoinColumn({ name: 'driverId' })
+    driver: DriversEntity;
 
-   }
+}
 
 

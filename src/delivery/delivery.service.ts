@@ -146,7 +146,8 @@ export class DeliveryService {
     async findRoutesBySessionId(sessionId: number) {
         const routes = await this.deliveryContainRepository.find({
             where: { sessionDelivery_id: sessionId },
-    });
+            relations: ['driver'], // Include driver relation
+        });
 
         if (!routes.length) {
             throw new NotFoundException({
@@ -155,8 +156,42 @@ export class DeliveryService {
             });
         }
 
-        return routes
+        // Map routes to include driver information if driverId is not null
+        const routesWithDriverInfo = routes.map(route => {
+            if (route.driverId) {
+                return {
+                    ...route,
+                    driver: {
+                        nombre_apellido: route.driver.nombre_apellido,
+                        empresa: route.driver.empresa,
+                        patente: route.driver.patente,
+                    },
+                };
+            }
+            return route;
+        });
+
+        return routesWithDriverInfo
     }
+
+    async updateDriverForRoute(routeId: number, driverId: number) {
+        const route = await this.deliveryContainRepository.findOne({
+            where: { id: routeId }
+        });
+
+        if (!route) {
+            throw new NotFoundException({
+                status: HttpStatus.NOT_FOUND,
+                message: `Route with ID ${routeId} not found`
+            });
+        }
+
+        route.driverId = driverId;
+        await this.deliveryContainRepository.save(route);
+
+        return route;
+    }
+
 
     async findRouteDetailsByRouteId(routeId: number) {
         const routeDetails = await this.routeDetailsRepository.find({

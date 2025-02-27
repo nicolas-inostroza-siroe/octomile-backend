@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Param, Get, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Param, Get, HttpStatus, Patch } from '@nestjs/common';
 import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
 import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
 import { DeliveryService } from './delivery.service';
@@ -38,6 +38,9 @@ export class DeliveryController {
         };
     }
 
+
+
+
     @Get('route/:id/details')
     async getRouteDetailsByRouteId(@Param('id') routeId: number) {
         const routeDetails = await this.deliveryService.findRouteDetailsByRouteId(routeId);
@@ -76,6 +79,20 @@ export class DeliveryController {
             data: routeDetail
         };
     }
+
+    @Patch('route/:routeId/driver/:driverId')
+    async updateDriverForRoute(
+        @Param('routeId') routeId: number,
+        @Param('driverId') driverId: number
+    ) {
+        const updatedRoute = await this.deliveryService.updateDriverForRoute(routeId, driverId);
+        return {
+            status: HttpStatus.OK,
+            message: 'Driver updated successfully for the route',
+            data: updatedRoute
+        };
+    }
+
 }
 
 
