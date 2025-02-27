@@ -38,9 +38,6 @@ export class DeliveryController {
         };
     }
 
-
-
-
     @Get('route/:id/details')
     async getRouteDetailsByRouteId(@Param('id') routeId: number) {
         const routeDetails = await this.deliveryService.findRouteDetailsByRouteId(routeId);
@@ -83,16 +80,16 @@ export class DeliveryController {
     @Patch('route/:routeId/driver/:driverId')
     async updateDriverForRoute(
         @Param('routeId') routeId: number,
-        @Param('driverId') driverId: number
+        @Param('driverId') driverId: number,
+        @Body('userId') userId: string
     ) {
-        const updatedRoute = await this.deliveryService.updateDriverForRoute(routeId, driverId);
+        const updatedRoute = await this.deliveryService.updateDriverForRoute(routeId, driverId, userId);
         return {
             status: HttpStatus.OK,
             message: 'Driver updated successfully for the route',
             data: updatedRoute
         };
     }
-
 }
 
 

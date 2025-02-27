@@ -174,10 +174,10 @@ export class DeliveryService {
         return routesWithDriverInfo
     }
 
-    async updateDriverForRoute(routeId: number, driverId: number) {
+    async updateDriverForRoute(routeId: number, driverId: number, userId: string) {
         const route = await this.deliveryContainRepository.findOne({
-            where: { id: routeId }
-        });
+            where: { id: routeId },
+            });
 
         if (!route) {
             throw new NotFoundException({
@@ -187,11 +187,27 @@ export class DeliveryService {
         }
 
         route.driverId = driverId;
+        route.gestor = userId;
         await this.deliveryContainRepository.save(route);
 
-        return route;
-    }
+        const updatedRoute = await this.deliveryContainRepository.findOne({
+            where: { id: routeId },
+            });
 
+        return {
+            status: HttpStatus.OK,
+            message: 'Driver updated successfully for the route',
+            data: {
+                ...updatedRoute,
+                driver: {
+                    nombre_apellido: updatedRoute.driver.nombre_apellido,
+                    empresa: updatedRoute.driver.empresa,
+                    patente: updatedRoute.driver.patente,
+                },
+                gestor: updatedRoute.gestor // Assuming userId is the name of the gestor
+            }
+        };
+    }
 
     async findRouteDetailsByRouteId(routeId: number) {
         const routeDetails = await this.routeDetailsRepository.find({
