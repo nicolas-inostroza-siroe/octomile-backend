@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { SessionDetailEntity } from "src/sessions/entities";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity('RouteDetails') 
@@ -39,4 +40,11 @@ export class RouteDetailsEntity {
 
     @Column({ type: 'varchar', nullable: true, default: null })
     userId: string;
+
+    @Column({ type: 'int', nullable: true })
+    sessionDetailsId: number;
+
+    @ManyToOne(() => SessionDetailEntity, sessionDetail => sessionDetail.routeDetails)
+    @JoinColumn({ name: 'sessionDetailsId' })
+    sessionDetail: SessionDetailEntity;
 }

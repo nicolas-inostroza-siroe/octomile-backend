@@ -6,9 +6,10 @@ import { sessionDeliveryEntity } from './entities/sessiondelivery.entity';
 import { sessionDeliveryRoutesEntity } from './entities/sessionDeliveryRoutes.entity';
 import { DriversEntity } from 'src/drivers/entities/drivers.entity';
 import { RouteDetailsEntity } from './entities/RouteDetails.entity';
+import { SessionDetailEntity } from 'src/sessions/entities';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([sessionDeliveryEntity,sessionDeliveryRoutesEntity,RouteDetailsEntity,DriversEntity])],
+  imports:[TypeOrmModule.forFeature([sessionDeliveryEntity,sessionDeliveryRoutesEntity,RouteDetailsEntity,DriversEntity,SessionDetailEntity])],
   controllers: [DeliveryController],
   providers: [DeliveryService]
 })

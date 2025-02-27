@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { SessionEntity } from "./session.entity";
 import { User } from '../../auth/entities/user.entity';
+import { RouteDetailsEntity } from 'src/delivery/entities/RouteDetails.entity';
 
 @Entity('Session-details')
 export class SessionDetailEntity {
@@ -60,5 +61,8 @@ export class SessionDetailEntity {
         { eager: false }
     )
     user: User
+
+    @OneToMany(() => RouteDetailsEntity, routeDetails => routeDetails.sessionDetail)
+    routeDetails: RouteDetailsEntity[];
 
 }
