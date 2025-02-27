@@ -42,4 +42,6 @@ gestion:string;
 @Type(() => RouteDetailsDto)
 guias: RouteDetailsDto[];
 
+
+
 }

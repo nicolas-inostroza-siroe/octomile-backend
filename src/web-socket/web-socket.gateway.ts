@@ -37,4 +37,8 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     emitSessionUpdate(sessionId: any, updatedSession: any) {
         this.server.to(`session-${sessionId}`).emit('sessionUpdate', updatedSession);
     }
+
+    emitProductScanned(routeId: any, updatedProduct: any) {
+        this.server.to(`route-${routeId}`).emit('productScanned', updatedProduct);
+    }
 }

@@ -1,10 +1,9 @@
-import { SessionDetailEntity } from "src/sessions/entities";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { sessionDeliveryRoutesEntity } from './sessionDeliveryRoutes.entity';
+import { SessionDetailEntity } from '../../sessions/entities/sessionDetails.entity';
 
-
-@Entity('RouteDetails') 
-export class RouteDetailsEntity { 
-
+@Entity('RouteDetails')
+export class RouteDetailsEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -12,7 +11,7 @@ export class RouteDetailsEntity {
     sessionDeliveryRoutesId: number;
 
     @Column('float')
-    numProduct:number;
+    numProduct: number;
 
     @Column('varchar')
     bindProduct: string;
@@ -47,4 +46,8 @@ export class RouteDetailsEntity {
     @ManyToOne(() => SessionDetailEntity, sessionDetail => sessionDetail.routeDetails)
     @JoinColumn({ name: 'sessionDetailsId' })
     sessionDetail: SessionDetailEntity;
+
+    @ManyToOne(() => sessionDeliveryRoutesEntity, route => route.routeDetails)
+    @JoinColumn({ name: 'sessionDeliveryRoutesId' })
+    sessionDeliveryRoute: sessionDeliveryRoutesEntity;
 }

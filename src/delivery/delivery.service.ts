@@ -1,6 +1,6 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { sessionDeliveryEntity } from './entities/sessiondelivery.entity';
 import { sessionDeliveryRoutesEntity } from './entities/sessionDeliveryRoutes.entity';
 import { DriversEntity } from '../drivers/entities/drivers.entity';
@@ -8,6 +8,9 @@ import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
 import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
 import { RouteDetailsDto } from './dto/routeDetails.dto';
 import { RouteDetailsEntity } from './entities/RouteDetails.entity';
+import { PinchazoDto } from './dto/pinchazo.dto';
+import { webSocketGateway } from '../web-socket/web-socket.gateway';
+import { User } from '../auth/entities/user.entity';
 
 @Injectable()
 export class DeliveryService {
@@ -20,6 +23,9 @@ export class DeliveryService {
         private readonly driversRepository: Repository<DriversEntity>,
         @InjectRepository(RouteDetailsEntity)
         private readonly routeDetailsRepository: Repository<RouteDetailsEntity>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+        private readonly webSocketGateway: webSocketGateway,
     ) {}
 
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
@@ -57,9 +63,6 @@ export class DeliveryService {
             data: savedSession
         };
     }
-
-    
-
 
     async createSessionDeliveryRoute(
         sessionId: number,
@@ -222,5 +225,76 @@ export class DeliveryService {
         }
 
         return routeDetails;
+    }
+
+    async pincharProducto(pinchazoDto: PinchazoDto) {
+        const { codigoProducto, idRoute, pinchadoPor } = pinchazoDto;
+
+        const route = await this.deliveryContainRepository.findOne({
+            where: { id: idRoute },
+            relations: ['routeDetails']
+        });
+
+        if (!route) throw new BadRequestException(`Route with ID ${idRoute} not found`);
+
+        const exist = route.routeDetails.some(
+            detail => detail.codigoProducto === codigoProducto
+        );
+
+        if (!exist) {
+            return {
+                message: 'Product not exist',
+                status: HttpStatus.CONFLICT
+            };
+        }
+
+        const alreadyScanned = route.routeDetails.some(
+            detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
+        );
+
+        if (alreadyScanned) {
+            return {
+                message: 'Product already scanned',
+                status: HttpStatus.CONFLICT
+            };
+        }
+
+        const pinchadoPorIds = [...new Set(route.routeDetails
+            .map(detail => detail.pinchadoPor))];
+
+        if (!pinchadoPorIds.includes(pinchadoPor)) {
+            const user = await this.userRepository.findOne({
+                where: { id: pinchadoPor }
+            });
+
+            if (!user) {
+                throw new NotFoundException({
+                    status: HttpStatus.NOT_FOUND,
+                    message: `User with ID ${pinchadoPor} not found`
+                });
+            }
+        }
+
+        const routeDetail = route.routeDetails.find(
+            detail => detail.codigoProducto === codigoProducto
+        );
+
+        routeDetail.fuePinchado = true;
+        routeDetail.fechaPinchado = new Date().toISOString();
+        routeDetail.pinchadoPor = pinchadoPor;
+
+        await this.routeDetailsRepository.save(routeDetail);
+
+        this.webSocketGateway.emitProductScanned(idRoute, {
+            codigoProducto,
+            idRoute,
+            pinchadoPor
+        });
+
+
+        return {
+            message: 'Product scanned successfully',
+            status: HttpStatus.OK
+        };
     }
 }
