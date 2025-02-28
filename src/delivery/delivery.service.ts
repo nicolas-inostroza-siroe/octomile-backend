@@ -299,7 +299,15 @@ export class DeliveryService {
         );
 
         routeDetail.fuePinchado = true;
-        routeDetail.fechaPinchado = new Date().toISOString();
+        routeDetail.fechaPinchado = new Date().toLocaleString('es-CL', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
         routeDetail.pinchadoPor = pinchadoPor;
         routeDetail.codigoPinchazo = 'DI';
         routeDetail.estado = 'Pinchado';
