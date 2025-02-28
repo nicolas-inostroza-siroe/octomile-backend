@@ -1,4 +1,5 @@
 
+import { RouteDetailsEntity } from "src/delivery/entities/RouteDetails.entity";
 import { ShipmentMasterEntity } from "src/shipment-load/entities";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -53,5 +54,7 @@ export class User {
         this.checkFieldsBeforeInsert();
     }
 
+    @OneToMany(() => RouteDetailsEntity, routeDetail => routeDetail.user)
+    routeDetails: RouteDetailsEntity[];
 
 }

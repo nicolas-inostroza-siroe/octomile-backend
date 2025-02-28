@@ -251,7 +251,7 @@ export class DeliveryService {
 
         const route = await this.deliveryContainRepository.findOne({
             where: { id: idRoute },
-            relations: ['routeDetails']
+            relations: ['routeDetails', 'routeDetails.user']
         });
 
         if (!route) throw new BadRequestException(`Route with ID ${idRoute} not found`);
@@ -281,17 +281,17 @@ export class DeliveryService {
         const pinchadoPorIds = [...new Set(route.routeDetails
             .map(detail => detail.pinchadoPor))];
 
-        if (!pinchadoPorIds.includes(pinchadoPor)) {
-            const user = await this.userRepository.findOne({
-                where: { id: pinchadoPor }
-            });
+        const userMap = new Map<string, User>();
+        const users = await this.userRepository.find({
+            where: { id: In([...pinchadoPorIds, pinchadoPor]) }
+        });
+        users.forEach(user => userMap.set(user.id, user));
 
-            if (!user) {
-                throw new NotFoundException({
-                    status: HttpStatus.NOT_FOUND,
-                    message: `User with ID ${pinchadoPor} not found`
-                });
-            }
+        if (!userMap.has(pinchadoPor)) {
+            throw new NotFoundException({
+                status: HttpStatus.NOT_FOUND,
+                message: `User with ID ${pinchadoPor} not found`
+            });
         }
 
         const routeDetail = route.routeDetails.find(
@@ -313,7 +313,7 @@ export class DeliveryService {
                 detalle.pinchadoPor = pinchadoPor;
                 updateProduct = {
                     ...detalle,
-                    userName:detalle.user?.fullName || 'Unknown user',
+                    userName:detalle.user.fullName || 'Unknown user',
                     pinchadoPorName:detalle.pinchadoPor ? userMap.get(detalle.pinchadoPor)?.fullName : 'Unknown user'
                 }    
             

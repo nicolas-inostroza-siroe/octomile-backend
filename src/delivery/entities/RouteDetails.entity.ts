@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { sessionDeliveryRoutesEntity } from './sessionDeliveryRoutes.entity';
 import { SessionDetailEntity } from '../../sessions/entities/sessionDetails.entity';
+import { User } from 'src/auth/entities/user.entity';
 
 @Entity('RouteDetails')
 export class RouteDetailsEntity {
@@ -50,4 +51,9 @@ export class RouteDetailsEntity {
     @ManyToOne(() => sessionDeliveryRoutesEntity, route => route.routeDetails)
     @JoinColumn({ name: 'sessionDeliveryRoutesId' })
     sessionDeliveryRoute: sessionDeliveryRoutesEntity;
+
+
+    @ManyToOne(() => User, user => user.routeDetails)
+    @JoinColumn({ name: 'userId' })
+    user: User;
 }
