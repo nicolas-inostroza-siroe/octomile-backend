@@ -15,6 +15,7 @@ import { SessionEntity } from 'src/sessions/entities';
 
 @Injectable()
 export class DeliveryService {
+    sessionsRepository: any;
     constructor(
         @InjectRepository(sessionDeliveryEntity)
         private readonly deliveryRepository: Repository<sessionDeliveryEntity>,
