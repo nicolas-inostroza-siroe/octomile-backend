@@ -27,7 +27,6 @@ export class DeliveryService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly webSocketGateway: webSocketGateway,
-        private readonly sessionsRepository: Repository<SessionEntity>
     ) {}
 
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
