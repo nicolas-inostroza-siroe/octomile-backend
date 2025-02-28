@@ -313,7 +313,7 @@ export class DeliveryService {
                 detalle.pinchadoPor = pinchadoPor;
                 updateProduct = {
                     ...detalle,
-                    userName:detalle.user.fullName || 'Unknown user',
+                    userName:detalle.user?.fullName || 'Unknown user',
                     pinchadoPorName:detalle.pinchadoPor ? userMap.get(detalle.pinchadoPor)?.fullName : 'Unknown user'
                 }    
             
