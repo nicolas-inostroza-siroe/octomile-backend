@@ -28,6 +28,8 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     @SubscribeMessage('joinSession')
     async handleJoinSession(client: Socket, data: {name: string, id: number }) {
 
+        console.log("conectando ");
+
         const rooms = Array.from(client.rooms).filter(room => room !== client.id);
         rooms.forEach(room => client.leave(room));
 

@@ -1,5 +1,7 @@
 
+import { session } from "passport";
 import { RouteDetailsEntity } from "src/delivery/entities/RouteDetails.entity";
+import { sessionDeliveryEntity } from "src/delivery/entities/sessiondelivery.entity";
 import { ShipmentMasterEntity } from "src/shipment-load/entities";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -56,5 +58,8 @@ export class User {
 
     @OneToMany(() => RouteDetailsEntity, routeDetail => routeDetail.user)
     routeDetails: RouteDetailsEntity[];
+
+    @OneToMany(() => sessionDeliveryEntity, sessionDelivery => sessionDelivery.user)
+    sessionDelivery: sessionDeliveryEntity[];
 
 }

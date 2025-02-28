@@ -4,6 +4,7 @@ import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
 import { DeliveryService } from './delivery.service';
 import { RouteDetailsDto } from './dto/routeDetails.dto';
 import { PinchazoDto } from './dto/pinchazo.dto';
+import { ChangeStatusDto } from 'src/sessions/dto/change-status.dto';
 
 @Controller('delivery')
 export class DeliveryController {
@@ -37,6 +38,13 @@ export class DeliveryController {
             message: 'Routes retrieved successfully',
             data: routes
         };
+    }
+
+    @Post('modificate-status')
+    modificateStatus(
+        @Body() ChangeStatusDto: ChangeStatusDto
+    ) {
+        return this.deliveryService.changeStatus(ChangeStatusDto)
     }
 
     @Get('route/:id/details')

@@ -12,6 +12,8 @@ import { PinchazoDto } from './dto/pinchazo.dto';
 import { webSocketGateway } from '../web-socket/web-socket.gateway';
 import { User } from '../auth/entities/user.entity';
 import { SessionEntity } from 'src/sessions/entities';
+import { ChangeStatusDto } from 'src/sessions/dto/change-status.dto';
+// import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class DeliveryService {
@@ -28,7 +30,8 @@ export class DeliveryService {
         private readonly userRepository: Repository<User>,
         private readonly webSocketGateway: webSocketGateway,
         @InjectRepository(SessionEntity)
-        private readonly sessionsRepository: Repository<SessionEntity>
+        private readonly sessionsRepository: Repository<SessionEntity>,
+        // private readonly commonService: CommonService,
     ) {}
 
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
@@ -141,11 +144,11 @@ export class DeliveryService {
     }
 
     async findAll(): Promise<{ status: number; message: string; data: sessionDeliveryEntity[] }> {
-        const sessions = await this.deliveryRepository.find({
-            order: {
-                id: 'DESC'
-            }
-        });
+        const sessions = await this.deliveryRepository.createQueryBuilder('delivery')
+        .leftJoin('delivery.user', 'user')
+        .addSelect(['user.fullName']) // Solo selecciona fullName de user
+        .orderBy('delivery.id', 'DESC')
+        .getMany();
     
         if (!sessions.length) {
             return {
@@ -246,6 +249,31 @@ export class DeliveryService {
 
         return routeDetails;
     }
+
+      async changeStatus(changeStatusDto: ChangeStatusDto) {
+    
+        // const { idSession, status } = changeStatusDto;
+        const { changeStatus } = changeStatusDto;
+    
+        const sessionesPromises = [];
+    
+        try {
+          changeStatus.forEach(async status => {
+            const session = await this.deliveryContainRepository.findOneBy({ id: status.id });
+    
+            if (!session) return;
+    
+            session.status = status.status;
+            sessionesPromises.push(this.deliveryContainRepository.save(session));
+          })
+    
+    
+          await Promise.all(sessionesPromises);
+          return { message: 'Status cambiado', status: HttpStatus.OK };
+        } catch (error) {
+        //   this.commonService.handleExceptions(error);
+        }
+      }
 
     async pincharProducto(pinchazoDto: PinchazoDto) {
         const { codigoProducto, idRoute, pinchadoPor } = pinchazoDto;
