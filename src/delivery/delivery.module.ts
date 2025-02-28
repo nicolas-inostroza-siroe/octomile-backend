@@ -6,12 +6,12 @@ import { sessionDeliveryEntity } from './entities/sessiondelivery.entity';
 import { sessionDeliveryRoutesEntity } from './entities/sessionDeliveryRoutes.entity';
 import { DriversEntity } from 'src/drivers/entities/drivers.entity';
 import { RouteDetailsEntity } from './entities/RouteDetails.entity';
-import { SessionDetailEntity } from 'src/sessions/entities';
+import { SessionDetailEntity, SessionEntity } from 'src/sessions/entities';
 import { webSocketGateway } from 'src/web-socket/web-socket.gateway';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([sessionDeliveryEntity,sessionDeliveryRoutesEntity,RouteDetailsEntity,DriversEntity,SessionDetailEntity]),AuthModule],
+  imports:[TypeOrmModule.forFeature([sessionDeliveryEntity,sessionDeliveryRoutesEntity,RouteDetailsEntity,DriversEntity,SessionDetailEntity, SessionEntity]),AuthModule],
   controllers: [DeliveryController],
   providers: [DeliveryService,webSocketGateway]
 })

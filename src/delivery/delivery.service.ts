@@ -11,6 +11,7 @@ import { RouteDetailsEntity } from './entities/RouteDetails.entity';
 import { PinchazoDto } from './dto/pinchazo.dto';
 import { webSocketGateway } from '../web-socket/web-socket.gateway';
 import { User } from '../auth/entities/user.entity';
+import { SessionEntity } from 'src/sessions/entities';
 
 @Injectable()
 export class DeliveryService {
@@ -26,6 +27,7 @@ export class DeliveryService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly webSocketGateway: webSocketGateway,
+        private readonly sessionsRepository: Repository<SessionEntity>
     ) {}
 
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
@@ -35,6 +37,13 @@ export class DeliveryService {
         });
 
         const savedSession = await this.deliveryRepository.save(sessionDelivery);
+
+        const sessions =  await this.sessionsRepository.findOneBy({
+            id: createSessionDeliveryDto.desId
+        });
+
+        sessions.sessionDeliveryId = savedSession.id.toString()
+        await this.sessionsRepository.save(sessions);
 
         for (const routeDto of createSessionDeliveryDto.routes) {
             const route = this.deliveryContainRepository.create({
@@ -144,7 +153,11 @@ export class DeliveryService {
             };
         }
     
-        return sessions
+        return {
+            status: HttpStatus.OK,
+            message: 'Session deliveries retrieved successfully',
+            data: sessions
+        } 
     }
 
     async findRoutesBySessionId(sessionId: number) {
