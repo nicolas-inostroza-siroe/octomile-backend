@@ -23,7 +23,7 @@ export class SessionEntity {
     @Column('varchar')
     propietario: string;
 
-    @Column('varchar')
+    @Column('varchar', { nullable: true })
     sessionDeliveryId: string;
     
 
