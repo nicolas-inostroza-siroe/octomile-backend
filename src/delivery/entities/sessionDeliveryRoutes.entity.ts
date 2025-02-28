@@ -1,6 +1,8 @@
 import { DriversEntity } from "src/drivers/entities/drivers.entity";
+
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { RouteDetailsEntity } from "./RouteDetails.entity";
+import { User } from "src/auth/entities/user.entity";
 
 
 
@@ -32,10 +34,16 @@ export class sessionDeliveryRoutesEntity {
     @Column({ type: 'int', nullable: true })
     driverId: number;
 
+    @Column()
+    bind:string;
 
     @ManyToOne(() => DriversEntity)
     @JoinColumn({ name: 'driverId' })
     driver: DriversEntity;
+
+    @ManyToOne(() => User)
+    @JoinColumn({ name: 'gestor' })
+    user: User
 
     @OneToMany(() => RouteDetailsEntity, detail => detail.sessionDeliveryRoute)
     routeDetails: RouteDetailsEntity[];

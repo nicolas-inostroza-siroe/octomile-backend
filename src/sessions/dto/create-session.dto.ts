@@ -28,11 +28,11 @@ class ProductSessionDto {
 
     @IsNumber()
     @IsPositive()
-    numProduct: number;
+    numProducto: number;
 
     @IsString()
     @MinLength(1)
-    bindProduct: string;
+    bindProducto: string;
 
     @IsString()
     @MinLength(1)

@@ -43,8 +43,8 @@ export class SessionsService {
         status: 'Por activar',
         tipo: tipo,
         sessionDetail: productsSessions.map(product => this.sessionsDetailsRepository.create({
-          bindProduct: product.bindProduct,
-          numProduct: product.numProduct,
+          bindProduct: product.bindProducto,
+          numProduct: product.numProducto,
           patenteProducto: product.patenteProducto,
           codigoProducto: product.codigoProducto,
         })),
@@ -518,8 +518,11 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
 
   async getSessionsWithoutDelivery(): Promise<{ status: number; message: string; data: SessionEntity[] }> {
     const sessions = await this.sessionsRepository.find({
-        where: { sessionDeliveryId: IsNull() },
-        order: { id: 'DESC' }
+      where: [
+          { sessionDeliveryId: IsNull() },
+          { sessionDeliveryId: '' }
+      ],
+      order: { id: 'DESC' }
     });
 
     return {

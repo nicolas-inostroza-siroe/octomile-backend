@@ -12,9 +12,9 @@ export class DeliveryController {
     async createSessionDelivery(@Body() createSessionDeliveryDto: CreateSesionDeliveryDto) {
         const sessionDelivery = await this.deliveryService.createSessionDelivery(createSessionDeliveryDto);
         return {
-            message: 'Session delivery created successfully',
-            statusCode: HttpStatus.OK,
-            data: sessionDelivery
+            status: sessionDelivery.status,
+            message: sessionDelivery.message,
+            data: sessionDelivery.data
         };
     }
 
@@ -85,9 +85,9 @@ export class DeliveryController {
     ) {
         const updatedRoute = await this.deliveryService.updateDriverForRoute(routeId, driverId, userId);
         return {
-            status: HttpStatus.OK,
-            message: 'Driver updated successfully for the route',
-            data: updatedRoute
+            status: updatedRoute.status,
+            message: updatedRoute.message,
+            data: updatedRoute.data
         };
     }
 }

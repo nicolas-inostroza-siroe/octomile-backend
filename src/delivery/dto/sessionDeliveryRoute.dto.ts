@@ -17,6 +17,10 @@ numero: string;
 patente:string;
 
 @ApiProperty()
+@IsString()
+bind:string;
+
+@ApiProperty()
 @IsNumber()
 @IsOptional()
 sessionDelivery_id: number;
@@ -41,7 +45,6 @@ gestion:string;
 @ValidateNested({ each: true })
 @Type(() => RouteDetailsDto)
 guias: RouteDetailsDto[];
-
 
 
 }

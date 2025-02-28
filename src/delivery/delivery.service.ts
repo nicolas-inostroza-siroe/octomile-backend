@@ -15,7 +15,6 @@ import { SessionEntity } from 'src/sessions/entities';
 
 @Injectable()
 export class DeliveryService {
-    sessionsRepository: any;
     constructor(
         @InjectRepository(sessionDeliveryEntity)
         private readonly deliveryRepository: Repository<sessionDeliveryEntity>,
@@ -28,6 +27,8 @@ export class DeliveryService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly webSocketGateway: webSocketGateway,
+        @InjectRepository(SessionEntity)
+        private readonly sessionsRepository: Repository<SessionEntity>
     ) {}
 
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
@@ -49,8 +50,9 @@ export class DeliveryService {
             const route = this.deliveryContainRepository.create({
                 numero: routeDto.numero,
                 patente: routeDto.patente,
+                bind: routeDto.bind,
                 sessionDelivery_id: savedSession.id,
-                status: routeDto.status,
+                status: routeDto.status
             });
 
             const savedRoute = await this.deliveryContainRepository.save(route);
@@ -163,7 +165,8 @@ export class DeliveryService {
     async findRoutesBySessionId(sessionId: number) {
         const routes = await this.deliveryContainRepository.find({
             where: { sessionDelivery_id: sessionId },
-            relations: ['driver'], // Include driver relation
+            relations: ['driver', 'user'],
+             // Include driver relation
         });
 
         if (!routes.length) {
@@ -183,6 +186,7 @@ export class DeliveryService {
                         empresa: route.driver.empresa,
                         patente: route.driver.patente,
                     },
+                    gestor: route.user.fullName  
                 };
             }
             return route;
@@ -209,6 +213,7 @@ export class DeliveryService {
 
         const updatedRoute = await this.deliveryContainRepository.findOne({
             where: { id: routeId },
+            relations: ['driver', 'user']
             });
 
         return {
@@ -221,7 +226,7 @@ export class DeliveryService {
                     empresa: updatedRoute.driver.empresa,
                     patente: updatedRoute.driver.patente,
                 },
-                gestor: updatedRoute.gestor // Assuming userId is the name of the gestor
+                gestor: updatedRoute.user.fullName // Assuming userId is the name of the gestor
             }
         };
     }
