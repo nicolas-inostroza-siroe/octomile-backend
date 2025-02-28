@@ -234,6 +234,7 @@ export class DeliveryService {
     async findRouteDetailsByRouteId(routeId: number) {
         const routeDetails = await this.routeDetailsRepository.find({
             where: { sessionDeliveryRoutesId: routeId },
+            relations: ['user'],
         });
 
         if (!routeDetails.length) {
@@ -299,7 +300,13 @@ export class DeliveryService {
         );
 
         routeDetail.fuePinchado = true;
-        routeDetail.fechaPinchado = new Date().toLocaleString('es-CL', {
+        routeDetail.pinchadoPor = pinchadoPor;
+        routeDetail.codigoPinchazo = 'DI';
+        routeDetail.estado = 'Pinchado';
+        routeDetail.userId = pinchadoPor;
+
+        const now = new Date();
+        const fechaFormateada = new Date().toLocaleString('es-CL', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -307,24 +314,26 @@ export class DeliveryService {
             minute: '2-digit',
             second: '2-digit',
             hour12: false
-        });
-        routeDetail.pinchadoPor = pinchadoPor;
-        routeDetail.codigoPinchazo = 'DI';
-        routeDetail.estado = 'Pinchado';
-        routeDetail.userId = pinchadoPor;
+        }).replace(',', '');
+
+        const milisegundos = String(now.getMilliseconds()).padStart(3, '0');
+
+        const [dia, mes, año, hora, minutos, segundos] = fechaFormateada.match(/\d+/g);
+        const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
+
+        routeDetail.fechaPinchado = formattedDate;
 
         await this.routeDetailsRepository.save(routeDetail);
 
         const updatedProduct = {
             ...routeDetail,
-            pinchadoPorName: userMap.get(routeDetail.pinchadoPor)?.fullName || 'Unknown user'
+            user: {
+                fullName: userMap.get(routeDetail.pinchadoPor)?.fullName || 'Unknown user'
+            }
+
         };
 
-        this.webSocketGateway.emitProductScanned(idRoute, {
-            codigoProducto,
-            idRoute,
-            pinchadoPor
-        });
+        this.webSocketGateway.emitProductScanned(idRoute, updatedProduct);
 
         return {
             message: 'Product scanned successfully',
