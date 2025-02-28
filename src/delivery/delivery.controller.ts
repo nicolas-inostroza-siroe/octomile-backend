@@ -3,6 +3,7 @@ import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
 import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
 import { DeliveryService } from './delivery.service';
 import { RouteDetailsDto } from './dto/routeDetails.dto';
+import { PinchazoDto } from './dto/pinchazo.dto';
 
 @Controller('delivery')
 export class DeliveryController {
@@ -89,6 +90,11 @@ export class DeliveryController {
             message: updatedRoute.message,
             data: updatedRoute.data
         };
+    }
+
+    @Patch('pinchazo')
+    async pincharProducto(@Body() pinchazoDto: PinchazoDto) {
+    return this.deliveryService.pincharProducto(pinchazoDto);
     }
 }
 

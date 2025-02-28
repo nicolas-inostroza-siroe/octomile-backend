@@ -26,12 +26,12 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     }
 
     @SubscribeMessage('joinSession')
-    async handleJoinSession(client: Socket, data: { id: number }) {
+    async handleJoinSession(client: Socket, data: {name: string, id: number }) {
 
         const rooms = Array.from(client.rooms).filter(room => room !== client.id);
         rooms.forEach(room => client.leave(room));
 
-        client.join(`session-${data.id}`);
+        client.join(`${data.name}-${data.id}`);
     }
 
     emitSessionUpdate(sessionId: any, updatedSession: any) {
