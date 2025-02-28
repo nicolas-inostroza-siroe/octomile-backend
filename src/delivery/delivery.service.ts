@@ -302,7 +302,28 @@ export class DeliveryService {
         routeDetail.fechaPinchado = new Date().toISOString();
         routeDetail.pinchadoPor = pinchadoPor;
 
-        await this.routeDetailsRepository.save(routeDetail);
+
+        let updateProduct = null;
+
+        route.routeDetails = route.routeDetails.map(detalle => {
+            if(detalle.codigoProducto === codigoProducto){
+                detalle.fechaPinchado = new Date().toISOString();
+                detalle.fuePinchado = true;
+                detalle.codigoPinchazo = 'DI';
+                detalle.pinchadoPor = pinchadoPor;
+                updateProduct = {
+                    ...detalle,
+                    userName:detalle.user?.fullName || 'Unknown user',
+                    pinchadoPorName:detalle.pinchadoPor ? userMap.get(detalle.pinchadoPor)?.fullName : 'Unknown user'
+                }    
+            
+            }
+            return detalle;
+
+         })
+
+
+        await this.routeDetailsRepository.save(route);
 
         this.webSocketGateway.emitProductScanned(idRoute, {
             codigoProducto,
@@ -313,7 +334,8 @@ export class DeliveryService {
 
         return {
             message: 'Product scanned successfully',
-            status: HttpStatus.OK
+            status: HttpStatus.OK,
+            data:updateProduct
         };
     }
 }
