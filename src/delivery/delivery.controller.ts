@@ -5,6 +5,7 @@ import { DeliveryService } from './delivery.service';
 import { RouteDetailsDto } from './dto/routeDetails.dto';
 import { PinchazoDto } from './dto/pinchazo.dto';
 import { ChangeStatusDto } from 'src/sessions/dto/change-status.dto';
+import { PinchazoDisDto } from './dto/pinchazo-dis.dto';
 
 @Controller('delivery')
 export class DeliveryController {
@@ -106,6 +107,11 @@ export class DeliveryController {
     @Patch('pinchazo')
     async pincharProducto(@Body() pinchazoDto: PinchazoDto) {
     return this.deliveryService.pincharProducto(pinchazoDto);
+    }
+
+    @Patch('pinchazo-dis')
+    async pinchazoDis(@Body() pinchazoDisDto: PinchazoDisDto) {
+        return this.deliveryService.productoDis(pinchazoDisDto);
     }
 }
 
