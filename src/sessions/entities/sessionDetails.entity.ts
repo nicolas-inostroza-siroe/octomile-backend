@@ -1,7 +1,8 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { SessionEntity } from "./session.entity";
 import { User } from '../../auth/entities/user.entity';
 import { RouteDetailsEntity } from 'src/delivery/entities/RouteDetails.entity';
+import { sessionDeliveryEntity } from 'src/delivery/entities/sessiondelivery.entity';
 
 @Entity('Session-details')
 export class SessionDetailEntity {
@@ -64,5 +65,4 @@ export class SessionDetailEntity {
 
     @OneToMany(() => RouteDetailsEntity, routeDetails => routeDetails.sessionDetail)
     routeDetails: RouteDetailsEntity[];
-
 }

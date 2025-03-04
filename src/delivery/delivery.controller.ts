@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Param, Get, HttpStatus, Patch } from '@nestjs/common';
+import { Body, Controller, Post, Param, Get, HttpStatus, Patch, Query } from '@nestjs/common';
 import { CreateSesionDeliveryDto } from './dto/createSessionDelivery.dto';
 import { sessionDeliveryRoutesDto } from './dto/sessionDeliveryRoute.dto';
 import { DeliveryService } from './delivery.service';
@@ -47,13 +47,16 @@ export class DeliveryController {
         return this.deliveryService.changeStatus(ChangeStatusDto)
     }
 
-    @Get('route/:id/details')
-    async getRouteDetailsByRouteId(@Param('id') routeId: number) {
-        const routeDetails = await this.deliveryService.findRouteDetailsByRouteId(routeId);
+    @Get('route/details')
+    async getRouteDetailsByQuery(
+        @Query('id') routeId: number,
+        @Query('status') status: string
+    ) {
+        const routeDetails = await this.deliveryService.findRouteDetailsByRouteId(routeId, status);
         return {
-            status: HttpStatus.OK,
-            message: 'Route details retrieved successfully',
-            data: routeDetails
+            status: routeDetails.status,
+            message: routeDetails.message,
+            data: routeDetails.data
         };
     }
 

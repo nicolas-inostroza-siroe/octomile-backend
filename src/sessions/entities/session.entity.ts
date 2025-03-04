@@ -1,5 +1,6 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { SessionDetailEntity } from "./sessionDetails.entity";
+import { sessionDeliveryEntity } from "src/delivery/entities/sessiondelivery.entity";
 
 
 @Entity('sessions')
@@ -22,9 +23,6 @@ export class SessionEntity {
 
     @Column('varchar')
     propietario: string;
-
-    @Column('varchar', { nullable: true })
-    sessionDeliveryId: string;
     
 
     @OneToMany(
@@ -34,4 +32,6 @@ export class SessionEntity {
     )
     sessionDetail: SessionDetailEntity[]
 
+    @OneToMany(() => sessionDeliveryEntity, sessionDelivery => sessionDelivery.session)
+    sessionDelivery: sessionDeliveryEntity[];
 }

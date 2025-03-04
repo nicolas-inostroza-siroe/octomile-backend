@@ -20,13 +20,13 @@ export class CreateSesionDeliveryDto{
     @IsString()
     propietario: string;
 
+    @ApiProperty()
+    @IsNumber()
+    sessionId: number;
+
     @ApiProperty({ type: [sessionDeliveryRoutesDto] })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => sessionDeliveryRoutesDto)
     routes: sessionDeliveryRoutesDto[];
-
-    @ApiProperty()
-    @IsNumber()
-    desId: number;
 }

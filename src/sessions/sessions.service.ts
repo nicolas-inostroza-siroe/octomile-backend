@@ -517,21 +517,17 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
   }
 
   async getSessionsWithoutDelivery(): Promise<{ status: number; message: string; data: SessionEntity[] }> {
-    const sessions = await this.sessionsRepository.find({
-      where: [
-          { sessionDeliveryId: IsNull() },
-          { sessionDeliveryId: '' }
-      ],
-      order: { id: 'DESC' }
-    });
+    const sessions = await this.sessionsRepository.createQueryBuilder('session')
+    .leftJoinAndSelect('session.sessionDelivery', 'sessionDelivery')
+    .where('sessionDelivery.sessionId IS NULL OR sessionDelivery.sessionId != session.id')
+    .orderBy('session.id', 'DESC')
+    .getMany();
 
     return {
         status: HttpStatus.OK,
         message: sessions.length ? 'Sessions retrieved successfully' : 'No sessions found without delivery',
         data: sessions
     };
-}
 
-
-
+  }
 }

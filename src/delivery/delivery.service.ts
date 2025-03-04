@@ -1,6 +1,6 @@
 import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { Repository, In, EntityManager } from 'typeorm';
 import { sessionDeliveryEntity } from './entities/sessiondelivery.entity';
 import { sessionDeliveryRoutesEntity } from './entities/sessionDeliveryRoutes.entity';
 import { DriversEntity } from '../drivers/entities/drivers.entity';
@@ -32,22 +32,18 @@ export class DeliveryService {
         @InjectRepository(SessionEntity)
         private readonly sessionsRepository: Repository<SessionEntity>,
         // private readonly commonService: CommonService,
+        @InjectEntityManager()
+        private readonly entityManager: EntityManager
     ) {}
 
     async createSessionDelivery(createSessionDeliveryDto: CreateSesionDeliveryDto) {
         const sessionDelivery = this.deliveryRepository.create({
             ...createSessionDeliveryDto,
             fecha: createSessionDeliveryDto.fecha, // Dates are now strings
+            session: {id: createSessionDeliveryDto.sessionId }
         });
 
         const savedSession = await this.deliveryRepository.save(sessionDelivery);
-
-        const sessions =  await this.sessionsRepository.findOneBy({
-            id: createSessionDeliveryDto.desId
-        });
-
-        sessions.sessionDeliveryId = savedSession.id.toString()
-        await this.sessionsRepository.save(sessions);
 
         for (const routeDto of createSessionDeliveryDto.routes) {
             const route = this.deliveryContainRepository.create({
@@ -146,7 +142,8 @@ export class DeliveryService {
     async findAll(): Promise<{ status: number; message: string; data: sessionDeliveryEntity[] }> {
         const sessions = await this.deliveryRepository.createQueryBuilder('delivery')
         .leftJoin('delivery.user', 'user')
-        .addSelect(['user.fullName']) // Solo selecciona fullName de user
+        .leftJoin('delivery.session', 'session')
+        .addSelect(['user.fullName', 'session.status'])
         .orderBy('delivery.id', 'DESC')
         .getMany();
     
@@ -166,36 +163,55 @@ export class DeliveryService {
     }
 
     async findRoutesBySessionId(sessionId: number) {
-        const routes = await this.deliveryContainRepository.find({
-            where: { sessionDelivery_id: sessionId },
-            relations: ['driver', 'user'],
-             // Include driver relation
-        });
 
-        if (!routes.length) {
+
+        const query = await this.entityManager.query(`
+            SELECT 
+                sessionDeliveryRoutes.*, 
+                drivers.nombre_apellido, 
+                drivers.empresa, 
+                drivers.patente as patenteDriver, 
+                user_octomile.fullName,
+                COALESCE(
+                    COUNT(CASE 
+                        WHEN session.status = 'Completado' THEN 
+                            CASE WHEN sessionDetails.codigoPinchazo = 'DI' THEN 1 ELSE NULL END
+                        ELSE 1 
+                    END), 0
+                ) AS totalRows,
+                (
+                    SELECT COALESCE(COUNT(*), 0)
+                    FROM RouteDetails
+                    WHERE RouteDetails.sessionDeliveryRoutesId = sessionDeliveryRoutes.id
+                    AND RouteDetails.codigoPinchazo = 'DIS'
+                ) AS totalScanRows
+            FROM 
+                sessionDeliveryRoutes
+            LEFT JOIN 
+                drivers ON drivers.id = sessionDeliveryRoutes.driverId
+            LEFT JOIN 
+                user_octomile ON user_octomile.id = sessionDeliveryRoutes.gestor
+            LEFT JOIN
+                sessionDelivery sd ON sd.sessionId = sessionDeliveryRoutes.sessionDelivery_id
+            LEFT JOIN
+                \`Session-details\` sessionDetails ON sessionDetails.patenteProducto = sessionDeliveryRoutes.patente
+                                                AND sessionDetails.idSesionId = sd.sessionId
+            LEFT JOIN
+                sessions session ON session.id = sd.sessionId
+            WHERE 
+                sessionDeliveryRoutes.sessionDelivery_id = 1
+            GROUP BY 
+                sessionDeliveryRoutes.id, drivers.nombre_apellido, drivers.empresa, drivers.patente, user_octomile.fullName;
+        `, [sessionId]);
+
+        if (!query.length) {
             throw new NotFoundException({
                 status: HttpStatus.NOT_FOUND,
                 message: `No routes found for session with ID ${sessionId}`,
             });
         }
 
-        // Map routes to include driver information if driverId is not null
-        const routesWithDriverInfo = routes.map(route => {
-            if (route.driverId) {
-                return {
-                    ...route,
-                    driver: {
-                        nombre_apellido: route.driver.nombre_apellido,
-                        empresa: route.driver.empresa,
-                        patente: route.driver.patente,
-                    },
-                    gestor: route.user.fullName  
-                };
-            }
-            return route;
-        });
-
-        return routesWithDriverInfo
+        return query
     }
 
     async updateDriverForRoute(routeId: number, driverId: number, userId: string) {
@@ -234,20 +250,46 @@ export class DeliveryService {
         };
     }
 
-    async findRouteDetailsByRouteId(routeId: number) {
-        const routeDetails = await this.routeDetailsRepository.find({
-            where: { sessionDeliveryRoutesId: routeId },
-            relations: ['user'],
-        });
+    async findRouteDetailsByRouteId(routeId: number, status: string) {
 
-        if (!routeDetails.length) {
-            throw new NotFoundException({
-                status: HttpStatus.NOT_FOUND,
+        let andWhere = ""
+        if(status == 'Completado'){
+            andWhere = "AND sd.codigoPinchazo = 'DI'"
+        } 
+
+        const query = `
+            SELECT rs.*,user.fullName
+            FROM RouteDetails rs
+            JOIN \`Session-details\` sd ON sd.id = rs.sessionDetailsId
+            JOIN user_octomile user ON user.id = rs.userId
+            WHERE rs.sessionDeliveryRoutesId = ? ${andWhere}
+        `;
+
+        const routeDetails = await this.entityManager.query(query, [routeId]);
+
+        const formattedResults = routeDetails.map(row => ({
+            ...row,
+            user: {
+                fullName: row.fullName,
+            }
+        }));
+
+
+        if (!formattedResults.length) {
+            return ({
+                status: HttpStatus.CONFLICT,
                 message: `No route details found for route with ID ${routeId}`,
+                data: []
             });
         }
 
-        return routeDetails;
+        return ({
+            status: HttpStatus.OK,
+            data: formattedResults,
+            message: `No route details found for route with ID ${routeId}`,
+
+        }) 
+            
     }
 
       async changeStatus(changeStatusDto: ChangeStatusDto) {
