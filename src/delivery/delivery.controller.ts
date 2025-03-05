@@ -113,6 +113,16 @@ export class DeliveryController {
     async pinchazoDis(@Body() pinchazoDisDto: PinchazoDisDto) {
         return this.deliveryService.productoDis(pinchazoDisDto);
     }
+
+    @Patch('changeStatusProduct')
+    async changeStatusProduct(
+        @Body('idRoute') idRoute: number,
+        @Body('idProduct') idProduct: number,
+        @Body('newStatus') newStatus: string
+    ){
+        return this.deliveryService.changeStatusProduct(idRoute, idProduct, newStatus);
+    }
+
 }
 
 

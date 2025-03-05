@@ -184,7 +184,7 @@ export class DeliveryService {
                     SELECT COALESCE(COUNT(*), 0)
                     FROM RouteDetails
                     WHERE RouteDetails.sessionDeliveryRoutesId = sessionDeliveryRoutes.id
-                    AND RouteDetails.codigoPinchazo = 'DIS'
+                    AND RouteDetails.codigoPinchazo = 'DI'
                 ) AS totalScanRows
             FROM 
                 sessionDeliveryRoutes
@@ -261,8 +261,8 @@ export class DeliveryService {
         const query = `
             SELECT rs.*,user.fullName
             FROM RouteDetails rs
-            JOIN \`Session-details\` sd ON sd.id = rs.sessionDetailsId
-            JOIN user_octomile user ON user.id = rs.userId
+            LEFT JOIN \`Session-details\` sd ON sd.id = rs.sessionDetailsId
+            LEFT JOIN user_octomile user ON user.id = rs.userId
             WHERE rs.sessionDeliveryRoutesId = ? ${andWhere}
         `;
 
@@ -504,6 +504,27 @@ export class DeliveryService {
             message: 'DIS product scanned successfully',
             status: HttpStatus.OK,
             data: updatedProduct
+        };
+    }
+
+    async changeStatusProduct(idRoute: number, idProduct: number, newStatus: string) {
+        const updateResult = await this.routeDetailsRepository
+            .createQueryBuilder()
+            .update("RouteDetails")
+            .set({ estado: newStatus })
+            .where("id = :idProduct", { idProduct })
+            .execute();
+    
+        if (updateResult.affected === 0) {
+            throw new NotFoundException("Product not found");
+        }
+    
+        this.webSocketGateway.emitProductScanned(idRoute, { id: idProduct, estado: newStatus });
+    
+        return {
+            message: 'Product status has been updated successfully',
+            status: HttpStatus.OK,
+            data: { id: idProduct, status: newStatus, operation: 'update'}
         };
     }
 }
