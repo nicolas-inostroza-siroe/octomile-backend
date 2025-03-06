@@ -1,6 +1,4 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-
-
 @Entity('drivers')
 export class DriversEntity {
     @PrimaryGeneratedColumn()

@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { PropietarioVehiculoEntity } from "./prop-vehicles.entity";
+import { DriversEntity } from "src/drivers/entities/drivers.entity";
 
 export enum TipoVehiculo {
   AUTO = 'Auto',
@@ -110,4 +111,5 @@ export class VehicleEntity {
   @ManyToOne(() => PropietarioVehiculoEntity, propietario => propietario.vehiculos)
   @JoinColumn({ name: 'id_propietario' })
   propietario: PropietarioVehiculoEntity;
+
 }
