@@ -12,6 +12,7 @@ import { DriversModule } from './drivers/drivers.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DeliveryModule } from './delivery/delivery.module';
+import { VehiclesModule } from './vehicles/vehicles.module';
 
 @Module({
   imports: [
@@ -43,7 +44,8 @@ import { DeliveryModule } from './delivery/delivery.module';
     WebSocketModule,
     CompanyModule,
     DriversModule,
-    DeliveryModule
+    DeliveryModule,
+    VehiclesModule
   ],
 
 })

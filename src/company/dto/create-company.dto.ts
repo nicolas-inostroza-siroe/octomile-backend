@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCompanyDto {
@@ -77,6 +77,10 @@ export class CreateCompanyDto {
   @IsNotEmpty()
   comunaRepresentante: string;
 
+  @ApiProperty({ description: 'Dirección física de la empresa' })
+  @IsString()
+  @IsNotEmpty()
+  direccionFisica: string;
 
 
 }

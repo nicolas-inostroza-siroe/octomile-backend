@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('companies')
 export class CompanyEntity {
@@ -51,5 +51,14 @@ export class CompanyEntity {
   comunaRepresentante: string;
 
   @Column({ type: 'varchar'})
+  direccionFisica: string;
+
+  @Column({ type: 'varchar'})
   status: string;
+  
+  @CreateDateColumn()
+  createdAt: Date;
+  
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
