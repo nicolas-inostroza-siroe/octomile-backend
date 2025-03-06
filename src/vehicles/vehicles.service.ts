@@ -6,6 +6,7 @@ import { PropietarioVehiculoEntity } from './entities/prop-vehicles.entity';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { UpdateVehicleStatusDto } from './dto/update-vehicle-status.dto';
 
 @Injectable()
 export class VehiclesService {
@@ -44,16 +45,7 @@ export class VehiclesService {
       throw new BadRequestException(`Ya existe un vehículo con la patente ${createVehicleDto.patente}`);
     }
     
-    // Verificar que el propietario existe si se proporciona id_propietario
-    if (createVehicleDto.id_propietario) {
-      const propietario = await this.propietarioRepository.findOne({ 
-        where: { id_propietario: createVehicleDto.id_propietario } 
-      });
-      
-      if (!propietario) {
-        throw new NotFoundException(`No se encontró un propietario con ID ${createVehicleDto.id_propietario}`);
-      }
-    }
+    // Ya no verificamos el propietario, simplemente usamos el valor proporcionado en el DTO
     
     // Crear el nuevo vehículo
     const newVehicle = this.vehicleRepository.create({
@@ -198,7 +190,65 @@ export class VehiclesService {
       throw new NotFoundException(`No se encontró un propietario con ID ${propietarioId}`);
     }
     
-    vehicle.id_propietario = propietarioId;
+    vehicle.id_propietario = propietarioId.toString();
     return await this.vehicleRepository.save(vehicle);
   }
+
+  /**
+ * Obtiene todos los vehículos
+ * @returns Lista de vehículos
+ */
+async findAll(): Promise<VehicleEntity[]> {
+  return await this.vehicleRepository.find({
+    
+    order: {
+      id_vehiculo: 'DESC'
+    }
+  });
+}
+
+
+/**
+ * Actualiza el propietario y/o estado de un vehículo
+ * @param vehiculoId ID del vehículo a actualizar
+ * @param updateDto Datos a actualizar
+ * @returns Vehículo actualizado
+ */
+async updateVehicleStatus(
+  vehiculoId: number, 
+  updateDto: UpdateVehicleStatusDto
+): Promise<VehicleEntity> {
+  const vehicle = await this.vehicleRepository.findOne({
+    where: { id_vehiculo: vehiculoId }
+  });
+
+  if (!vehicle) {
+    throw new NotFoundException(`No se encontró un vehículo con ID ${vehiculoId}`);
+  }
+
+  // Verificar y actualizar propietario si se proporciona
+  if (updateDto.id_propietario) {
+    const propietario = await this.propietarioRepository.findOne({
+      where: { id_propietario: Number(updateDto.id_propietario) }
+    });
+
+    if (!propietario) {
+      throw new NotFoundException(
+        `No se encontró un propietario con ID ${updateDto.id_propietario}`
+      );
+    }
+    vehicle.id_propietario = updateDto.id_propietario;
+  }
+
+  // Actualizar estado si se proporciona
+  if (updateDto.estado) {
+    vehicle.estado = updateDto.estado;
+  }
+
+  // Guardar cambios
+  return await this.vehicleRepository.save(vehicle);
+}
+
+
+
 }

@@ -53,7 +53,5 @@ export class PropietarioVehiculoEntity {
   @UpdateDateColumn()
   fecha_actualizacion: Date;
 
-  // Relación con vehículos - usar type function para evitar referencias circulares
-  @OneToMany(() => VehicleEntity, vehicle => vehicle.propietario)
-  vehiculos: VehicleEntity[];
+
 }

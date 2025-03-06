@@ -24,8 +24,8 @@ export class VehicleEntity {
   @Column({ type: 'int', nullable: true })
   id_empresa: number;
 
-  @Column({ type: 'int' })
-  id_propietario: number;
+  @Column({ type: 'varchar' })
+  id_propietario: string;
 
   @Column({ type: 'int', nullable: true })
   id_poliza: number;
@@ -52,8 +52,8 @@ export class VehicleEntity {
   @Column({ type: 'varchar' })
   modelo: string;
 
-  @Column({ type: 'int' })
-  ano_fabricacion: number;
+  @Column({ type: 'varchar' })
+  ano_fabricacion: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   largo_m: number;
@@ -108,8 +108,6 @@ export class VehicleEntity {
   fecha_actualizacion: Date;
 
   // Relaciones
-  @ManyToOne(() => PropietarioVehiculoEntity, propietario => propietario.vehiculos)
-  @JoinColumn({ name: 'id_propietario' })
-  propietario: PropietarioVehiculoEntity;
+
 
 }

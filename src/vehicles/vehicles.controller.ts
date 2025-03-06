@@ -1,16 +1,17 @@
-import { Controller, Post, Body, Param, UseInterceptors, UploadedFiles, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseInterceptors, UploadedFiles, ParseIntPipe, Get, Patch } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { VehicleEntity } from './entities/vehicles.entity';
-import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UpdateVehicleStatusDto } from './Dto/update-vehicle-status.dto';
 
 @ApiTags('vehicles')
 @Controller('vehicles')
 export class VehiclesController {
-  constructor(private readonly vehiclesService: VehiclesService) {}
+  constructor(private readonly vehiclesService: VehiclesService) { }
 
-  @Post()
+  @Post('create')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -24,35 +25,35 @@ export class VehiclesController {
         ano_fabricacion: { type: 'integer' },
         id_propietario: { type: 'integer' },
         creado_por: { type: 'string' },
-        
+
         // Archivos
-        fotografia1: { 
-          type: 'string', 
-          format: 'binary' 
+        fotografia1: {
+          type: 'string',
+          format: 'binary'
         },
-        fotografia2: { 
-          type: 'string', 
-          format: 'binary' 
+        fotografia2: {
+          type: 'string',
+          format: 'binary'
         },
-        fotografia3: { 
-          type: 'string', 
-          format: 'binary' 
+        fotografia3: {
+          type: 'string',
+          format: 'binary'
         },
-        fotografia4: { 
-          type: 'string', 
-          format: 'binary' 
+        fotografia4: {
+          type: 'string',
+          format: 'binary'
         },
-        permiso_circulacion: { 
-          type: 'string', 
-          format: 'binary' 
+        permiso_circulacion: {
+          type: 'string',
+          format: 'binary'
         },
-        revision_tecnica: { 
-          type: 'string', 
-          format: 'binary' 
+        revision_tecnica: {
+          type: 'string',
+          format: 'binary'
         },
-        seguro: { 
-          type: 'string', 
-          format: 'binary' 
+        seguro: {
+          type: 'string',
+          format: 'binary'
         }
       }
     }
@@ -81,11 +82,28 @@ export class VehiclesController {
     return this.vehiclesService.create(createVehicleDto, files);
   }
 
-  @Post(':id/propietario/:propietarioId')
-  async assignPropietario(
-    @Param('id', ParseIntPipe) vehiculoId: number,
-    @Param('propietarioId', ParseIntPipe) propietarioId: number
-  ): Promise<VehicleEntity> {
-    return this.vehiclesService.assignPropietario(vehiculoId, propietarioId);
+
+  @Get('getAll')
+  async GetAll(): Promise<VehicleEntity[]> {
+    return this.vehiclesService.findAll();
   }
+
+
+  @Patch(':id/status')
+@ApiOperation({ summary: 'Actualizar propietario y/o estado de un vehículo' })
+@ApiResponse({
+  status: 200,
+  description: 'Vehículo actualizado exitosamente',
+  type: VehicleEntity
+})
+@ApiResponse({ status: 404, description: 'Vehículo o propietario no encontrado' })
+async updateVehicleStatus(
+  @Param('id', ParseIntPipe) vehiculoId: number,
+  @Body() updateDto: UpdateVehicleStatusDto
+): Promise<VehicleEntity> {
+  return this.vehiclesService.updateVehicleStatus(vehiculoId, updateDto);
+}
+
+  
+
 }

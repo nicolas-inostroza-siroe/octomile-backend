@@ -9,9 +9,9 @@ export class CreateVehicleDto {
   id_empresa?: number;
 
   @ApiProperty({ description: 'ID del propietario del vehículo' })
-  @IsInt()
+  @IsString()
   @IsOptional()
-  id_propietario?: number;
+  id_propietario?: string;
 
   @ApiProperty({ description: 'ID de la póliza asociada al vehículo' })
   @IsInt()
@@ -45,8 +45,8 @@ export class CreateVehicleDto {
   modelo: string;
 
   @ApiProperty({ description: 'Año de fabricación' })
-  @IsInt()
-  ano_fabricacion: number;
+  @IsString()
+  ano_fabricacion: string;
 
   @ApiProperty({ description: 'Largo del vehículo en metros' })
   @IsDecimal()
