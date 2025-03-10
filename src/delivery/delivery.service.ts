@@ -241,12 +241,10 @@ export class DeliveryService {
             message: 'Driver updated successfully for the route',
             data: {
                 ...updatedRoute,
-                driver: {
-                    nombre_apellido: updatedRoute.driver.nombre_apellido,
-                    empresa: updatedRoute.driver.empresa,
-                    patente: updatedRoute.driver.patente,
-                },
-                gestor: updatedRoute.user.fullName // Assuming userId is the name of the gestor
+                nombre_apellido: updatedRoute.driver.nombre_apellido,
+                empresa: updatedRoute.driver.empresa,
+                patenteDriver: updatedRoute.driver.patente,
+                fullName: updatedRoute.user.fullName
             }
         };
     }
