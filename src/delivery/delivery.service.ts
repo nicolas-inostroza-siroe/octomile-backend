@@ -212,7 +212,23 @@ export class DeliveryService {
             });
         }
 
-        return query
+        const query2 = `
+        SELECT rd.numProduct, rd.bindProduct, rd.patenteProducto, rd.codigoProducto ,rd.estado,
+        oc1.fullName scanFor, oc2.fullName reviewFor, rd.fechaPinchado, rd.fechaRevisado
+        FROM sessionDeliveryRoutes sr
+        INNER JOIN RouteDetails rd ON sr.id = rd.sessionDeliveryRoutesId
+        LEFT JOIN user_octomile oc1 ON rd.pinchadoPor = oc1.id
+        LEFT JOIN user_octomile oc2 on rd.revisadoPor = oc2.id
+        WHERE sr.sessionDelivery_id = ? AND rd.estado != 'Pinchado'`
+
+        const toReview = await this.entityManager.query(query2,[sessionId]);
+
+        const data = {
+            routes: query,
+            productsToReview: toReview
+        }
+
+        return data
     }
 
     async updateDriverForRoute(routeId: number, driverId: number, userId: string) {
@@ -459,8 +475,9 @@ export class DeliveryService {
             codigoProducto: codigoProducto,
             fuePinchado: true,
             codigoPinchazo: 'DIS',
-            estado: 'Pinchado',
+            estado: 'Bind Erroneo',
             pinchadoPor: pinchadoPor,
+            revisadoPor: pinchadoPor,
             userId: pinchadoPor,
             sessionDeliveryRoutesId: route.id
         });
@@ -483,6 +500,7 @@ export class DeliveryService {
         const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
 
         routeDetail.fechaPinchado = formattedDate;
+        routeDetail.fechaRevisado = formattedDate;
 
         // Guardar el nuevo detalle
         const savedDetail = await this.routeDetailsRepository.save(routeDetail);
@@ -505,11 +523,29 @@ export class DeliveryService {
         };
     }
 
-    async changeStatusProduct(idRoute: number, idProduct: number, newStatus: string) {
+    async changeStatusProduct(idRoute: number, idProduct: number, newStatus: string, userId: string) {
+
+        const now = new Date();
+        const fechaFormateada = now.toLocaleString('es-CL', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).replace(',', '');
+
+        const milisegundos = String(now.getMilliseconds()).padStart(3, '0');
+
+        const [dia, mes, año, hora, minutos, segundos] = fechaFormateada.match(/\d+/g);
+        const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
+
+
         const updateResult = await this.routeDetailsRepository
             .createQueryBuilder()
             .update("RouteDetails")
-            .set({ estado: newStatus })
+            .set({ estado: newStatus, fechaRevisado: formattedDate, revisadoPor: userId })
             .where("id = :idProduct", { idProduct })
             .execute();
     

@@ -33,11 +33,11 @@ export class DeliveryController {
 
     @Get('session/:id/routes')
     async getRoutesBySessionId(@Param('id') sessionId: number) {
-        const routes = await this.deliveryService.findRoutesBySessionId(sessionId);
+        const data = await this.deliveryService.findRoutesBySessionId(sessionId);
         return {
             status: HttpStatus.OK,
             message: 'Routes retrieved successfully',
-            data: routes
+            data: data
         };
     }
 
@@ -118,9 +118,10 @@ export class DeliveryController {
     async changeStatusProduct(
         @Body('idRoute') idRoute: number,
         @Body('idProduct') idProduct: number,
-        @Body('newStatus') newStatus: string
+        @Body('newStatus') newStatus: string,
+        @Body('userId') userId: string
     ){
-        return this.deliveryService.changeStatusProduct(idRoute, idProduct, newStatus);
+        return this.deliveryService.changeStatusProduct(idRoute, idProduct, newStatus, userId);
     }
 
 }
