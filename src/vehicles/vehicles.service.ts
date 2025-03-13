@@ -226,17 +226,8 @@ async updateVehicleStatus(
     throw new NotFoundException(`No se encontró un vehículo con ID ${vehiculoId}`);
   }
 
-  // Verificar y actualizar propietario si se proporciona
+  // Actualizar propietario si se proporciona
   if (updateDto.id_propietario) {
-    const propietario = await this.propietarioRepository.findOne({
-      where: { id_propietario: Number(updateDto.id_propietario) }
-    });
-
-    if (!propietario) {
-      throw new NotFoundException(
-        `No se encontró un propietario con ID ${updateDto.id_propietario}`
-      );
-    }
     vehicle.id_propietario = updateDto.id_propietario;
   }
 

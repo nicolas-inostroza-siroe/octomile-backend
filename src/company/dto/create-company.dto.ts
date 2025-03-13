@@ -77,10 +77,6 @@ export class CreateCompanyDto {
   @IsNotEmpty()
   comunaRepresentante: string;
 
-  @ApiProperty({ description: 'Dirección física de la empresa' })
-  @IsString()
-  @IsNotEmpty()
-  direccionFisica: string;
 
 
 }

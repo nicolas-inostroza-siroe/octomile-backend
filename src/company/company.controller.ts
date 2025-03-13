@@ -31,14 +31,22 @@ export class CompanyController {
     };
   }
 
-  @Put('update/:id')
+  @Put('update')
+  @ApiOperation({ summary: 'Actualizar una empresa' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Empresa actualizada exitosamente' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Empresa no encontrada' 
+  })
   async update(
-    @Param('id') id: number,
-    @Body() updateCompanyDto: CreateCompanyDto
+    @Body() updateCompanyDto: UpdateStatusDto
   ) {
-    await this.companyService.update(id, updateCompanyDto);
+    await this.companyService.update(updateCompanyDto.id, updateCompanyDto);
     return {
-      message: 'success',
+      message: 'Empresa actualizada exitosamente',
       statusCode: 200
     };
   }
@@ -50,8 +58,6 @@ export class CompanyController {
   
   return {message: 'Company status updated successfully',statusCode: 200};
 } 
-
-
 
 
 
