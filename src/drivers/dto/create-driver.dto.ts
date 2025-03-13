@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsISO8601, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsDate, IsEmpty, IsISO8601, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Column } from "typeorm";
 
 
@@ -9,6 +9,46 @@ export class CreateDriverDto {
     @IsString()
     @IsNotEmpty()
     nombre_apellido: string;
+
+    @ApiProperty({ 
+        description: 'Tipo de identificación',
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    tipo_identificacion?: string;
+
+    @ApiProperty({ 
+        description: 'Dirección del conductor',
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    direccion?: string;
+
+    @ApiProperty({ 
+        description: 'Teléfono del conductor',
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    telefono?: string;
+
+    @ApiProperty({ 
+        description: 'Correo electrónico del conductor',
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    correo_electronico?: string;
+
+    @ApiProperty({ 
+        description: 'Clase de licencia de conducir',
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    clase_licencia?: string;
 
     @ApiProperty({ description: 'Usuario' })
     @IsString()
@@ -27,12 +67,12 @@ export class CreateDriverDto {
 
     @ApiProperty({ description: 'Patente' })
     @IsString()
-    @IsNotEmpty()
+    @IsEmpty()
     patente: string;
 
     @ApiProperty({ description: 'Tipo' })
     @IsString()
-    @IsNotEmpty()
+    @IsEmpty()
     tipo: string;
 
     @ApiProperty({ type: 'string', format: 'binary' })

@@ -1,22 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { EstadoVehiculo } from '../entities/vehicles.entity';
+import { IsString, IsOptional } from 'class-validator';
 
 export class UpdateVehicleStatusDto {
-  @ApiProperty({ 
-    description: 'ID del propietario del vehículo',
-    required: false 
-  })
-  @IsString()
-  @IsOptional()
-  id_propietario?: string;
+    @ApiProperty({ description: 'ID del propietario', required: false })
+    @IsString()
+    @IsOptional()
+    id_propietario?: string;
 
-  @ApiProperty({ 
-    description: 'Estado del vehículo',
-    enum: EstadoVehiculo,
-    required: false
-  })
-  @IsEnum(EstadoVehiculo)
-  @IsOptional()
-  estado?: EstadoVehiculo;
+    @ApiProperty({ description: 'Estado del vehículo', required: false })
+    @IsString()
+    @IsOptional()
+    estado?: string;
 }

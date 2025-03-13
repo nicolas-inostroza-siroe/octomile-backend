@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Param, UseInterceptors, UploadedFiles, ParseIntPipe, Get, Patch } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { VehiclesService } from './vehicles.service';
-import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { CreateVehicleDto } from './Dto/create-vehicle.dto';
 import { VehicleEntity } from './entities/vehicles.entity';
 import { ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UpdateVehicleStatusDto } from './Dto/update-vehicle-status.dto';
