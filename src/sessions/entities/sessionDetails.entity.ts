@@ -1,10 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { SessionEntity } from "./session.entity";
 import { User } from '../../auth/entities/user.entity';
 import { RouteDetailsEntity } from 'src/delivery/entities/RouteDetails.entity';
 import { sessionDeliveryEntity } from 'src/delivery/entities/sessiondelivery.entity';
 
 @Entity('Session-details')
+@Index('IDX_SessionId_CodigoProducto', ['idSesion', 'codigoProducto'])
 export class SessionDetailEntity {
 
     @PrimaryGeneratedColumn()

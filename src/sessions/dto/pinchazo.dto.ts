@@ -11,8 +11,11 @@ export class PinchazoDto {
     @IsString()
     @MinLength(1)
     codigoProducto: string;
-
+    
     @IsString()
-    pinchadoPor: string;
+    pinchadoPorName: string;
+    
+    @IsString()
+    pinchadoPorId: string;
 
 }

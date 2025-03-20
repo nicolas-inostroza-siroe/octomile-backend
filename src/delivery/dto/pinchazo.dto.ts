@@ -13,5 +13,9 @@ export class PinchazoDto {
 
     @ApiProperty()
     @IsString()
-    pinchadoPor: string;
+    pinchadoPorName: string;
+
+    @IsString()
+    pinchadoPorId: string;
+
 }

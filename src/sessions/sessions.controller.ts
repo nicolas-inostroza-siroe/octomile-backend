@@ -62,10 +62,10 @@ export class SessionsController {
   }
 
   
-  @Delete('delete-dis')
-  async deletDis(@Body() deleteDisDto: DeleteDisDto) {
-    return this.sessionsService.DeletDis(deleteDisDto);
-  }
+  // @Delete('delete-dis')
+  // async deletDis(@Body() deleteDisDto: DeleteDisDto) {
+  //   return this.sessionsService.DeletDis(deleteDisDto);
+  // }
 
 
   @Patch('UpdateDis')

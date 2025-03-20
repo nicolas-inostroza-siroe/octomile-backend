@@ -41,7 +41,7 @@ export class RouteDetailsEntity {
     @Column({ type: 'varchar', nullable: true, default: null })
     userId: string;
 
-    @Column('varchar')
+    @Column({type: 'varchar', nullable: true, default: null})
     fechaRevisado: string;
 
     @Column({ type: 'varchar', nullable: true, default: null })
@@ -58,7 +58,7 @@ export class RouteDetailsEntity {
     @JoinColumn({ name: 'sessionDeliveryRoutesId' })
     sessionDeliveryRoute: sessionDeliveryRoutesEntity;
 
-    
+
     @ManyToOne(() => User, user => user.routeDetails)
     @JoinColumn({ name: 'userId' })
     user: User;

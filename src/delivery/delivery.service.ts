@@ -177,7 +177,7 @@ export class DeliveryService {
                     COUNT(CASE 
                         WHEN session.status = 'Completado' THEN 
                             CASE WHEN sessionDetails.codigoPinchazo = 'DI' THEN 1 ELSE NULL END
-                        ELSE 1 
+                        ELSE sessionDetails.id
                     END), 0
                 ) AS totalRows,
                 (
@@ -193,14 +193,14 @@ export class DeliveryService {
             LEFT JOIN 
                 user_octomile ON user_octomile.id = sessionDeliveryRoutes.gestor
             LEFT JOIN
-                sessionDelivery sd ON sd.sessionId = sessionDeliveryRoutes.sessionDelivery_id
+                sessionDelivery sd ON sd.id = sessionDeliveryRoutes.sessionDelivery_id
             LEFT JOIN
                 \`Session-details\` sessionDetails ON sessionDetails.patenteProducto = sessionDeliveryRoutes.patente
                                                 AND sessionDetails.idSesionId = sd.sessionId
             LEFT JOIN
                 sessions session ON session.id = sd.sessionId
             WHERE 
-                sessionDeliveryRoutes.sessionDelivery_id = 1
+                sessionDeliveryRoutes.sessionDelivery_id = ?
             GROUP BY 
                 sessionDeliveryRoutes.id, drivers.nombre_apellido, drivers.empresa, drivers.patente, user_octomile.fullName;
         `, [sessionId]);
@@ -333,63 +333,177 @@ export class DeliveryService {
     }
 
     async pincharProducto(pinchazoDto: PinchazoDto) {
-        const { codigoProducto, idRoute, pinchadoPor } = pinchazoDto;
+        const { codigoProducto, idRoute, pinchadoPorName, pinchadoPorId } = pinchazoDto;
 
-        const route = await this.deliveryContainRepository.findOne({
-            where: { id: idRoute },
-            relations: ['routeDetails', 'routeDetails.user']
-        });
+        const query = `
+            SELECT numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo
+            FROM RouteDetails
+            WHERE sessionDeliveryRoutesId = ? AND codigoProducto = ?
+        `
 
-        if (!route) throw new BadRequestException(`Route with ID ${idRoute} not found`);
+        const res = await this.entityManager.query(query, [idRoute, codigoProducto])
 
-        const exist = route.routeDetails.some(
-            detail => detail.codigoProducto === codigoProducto
-        );
-
-        if (!exist) {
+        if(res.length === 0){
             return {
                 message: 'Product not exist',
                 status: HttpStatus.CONFLICT
-            };
+            }
         }
 
-        const alreadyScanned = route.routeDetails.some(
-            detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
-        );
-
-        if (alreadyScanned) {
+        if(res[0].fuePinchado) {
             return {
                 message: 'Product already scanned',
                 status: HttpStatus.CONFLICT
+            }
+        }
+
+        const query2 = `
+            UPDATE RouteDetails
+            SET codigoPinchazo = 'DI', pinchadoPor = ?, fechaPinchado = ?, fuePinchado = true, estado = 'Pinchado', userId = ?
+            WHERE id = ?
+        `;
+
+        const date = this.nowDate();
+
+        const update = await this.entityManager.query(query2, [pinchadoPorId, date, res[0].id]);
+
+        if (!update.affectedRows && !update.rowCount) {
+            return {
+                message: 'Failed to update product',
+                status: HttpStatus.INTERNAL_SERVER_ERROR
             };
         }
+    
+        const result = {
+            ...res[0],
+            codigoPinchazo: 'DI',
+            PinchadoPor: pinchadoPorId,
+            fechaPinchado: date,
+            fuePinchado: true,
+            estado: 'Pinchado',
+            userId: pinchadoPorId,
+            user: {
+                fullName: pinchadoPorName,
+            }
+        };
+        
+        this.webSocketGateway.emitProductScanned(idRoute, result);
 
-        const pinchadoPorIds = [...new Set(route.routeDetails
-            .map(detail => detail.pinchadoPor))];
+        return {
+            message: 'Product scanned successfully',
+            status: HttpStatus.OK,
+            data: result
+        };
+    }
 
-        const userMap = new Map<string, User>();
-        const users = await this.userRepository.find({
-            where: { id: In([...pinchadoPorIds, pinchadoPor]) }
-        });
-        users.forEach(user => userMap.set(user.id, user));
+    async productoDis(pinchazoDisDto: PinchazoDisDto) {
+        const { codigoProducto, idRoute, pinchadoPorId, pinchadoPorName } = pinchazoDisDto;
 
-        if (!userMap.has(pinchadoPor)) {
-            throw new NotFoundException({
-                status: HttpStatus.NOT_FOUND,
-                message: `User with ID ${pinchadoPor} not found`
-            });
+        const date = this.nowDate();
+
+        const query = `
+            INSERT INTO RouteDetails (numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo, PinchadoPor, sessionDeliveryRoutesId, userId, estado, revisadoPor, fechaRevisado )
+            VALUES (0, '', '', ?, true, ?, 'DIS', ?, ?, ?, 'Bind Erroneo', ?, ?)
+        `
+
+        const res = await this.entityManager.query(query, [codigoProducto, date, pinchadoPorId, idRoute, pinchadoPorId, pinchadoPorId, date])
+
+        if(!res.affectedRows || res.affectedRows === 0) {
+            throw new NotFoundException(`Error inserting ${codigoProducto} into RouteDetails`);
         }
 
-        const routeDetail = route.routeDetails.find(
-            detail => detail.codigoProducto === codigoProducto
-        );
+        const data = {
+            id: res.insertId || null,
+            numProduct : 0,
+            bindProduct: "",
+            patenteProducto: "",
+            codigoProducto: codigoProducto,
+            fuePinchado: true,
+            fechaPinchado: date,
+            codigoPinchazo: 'DIS',
+            PinchadoPor: pinchadoPorId,
+            estado: 'Bind Erroneo',
+            revisadoPor: pinchadoPorId,
+            fechaRevisado: date,
+            user: {
+                fullName: pinchadoPorName
+            }
+        }
 
-        routeDetail.fuePinchado = true;
-        routeDetail.pinchadoPor = pinchadoPor;
-        routeDetail.codigoPinchazo = 'DI';
-        routeDetail.estado = 'Pinchado';
-        routeDetail.userId = pinchadoPor;
+        this.webSocketGateway.emitProductScanned(idRoute, data);
 
+        return {
+            message: 'DIS product scanned successfully',
+            status: HttpStatus.OK,
+            data: data
+        };
+    }
+
+    async changeStatusProduct(idRoute: number, idProduct: number, newStatus: string, userId: string) {
+
+        const date = this.nowDate();
+
+        const query = `
+            UPDATE RouteDetails
+            SET estado = ?, fechaRevisado = ?, revisadoPor = ?
+            WHERE id = ?
+        `;
+
+        const update = await this.entityManager.query(query, [newStatus, date, userId, idProduct])
+
+        if(!update.affectedRows && !update.rowCount){
+            return {
+              message: 'Failted to update product',
+              status: HttpStatus.INTERNAL_SERVER_ERROR
+            }
+        }
+
+        this.webSocketGateway.emitProductScanned(idRoute, { id: idProduct, estado: newStatus });
+    
+        return {
+            message: 'Product status has been updated successfully',
+            status: HttpStatus.OK,
+            data: { id: idProduct, status: newStatus, operation: 'update'}
+        };
+
+        // const now = new Date();
+        // const fechaFormateada = now.toLocaleString('es-CL', {
+        //     year: 'numeric',
+        //     month: '2-digit',
+        //     day: '2-digit',
+        //     hour: '2-digit',
+        //     minute: '2-digit',
+        //     second: '2-digit',
+        //     hour12: false
+        // }).replace(',', '');
+
+        // const milisegundos = String(now.getMilliseconds()).padStart(3, '0');
+
+        // const [dia, mes, año, hora, minutos, segundos] = fechaFormateada.match(/\d+/g);
+        // const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
+
+
+        // const updateResult = await this.routeDetailsRepository
+        //     .createQueryBuilder()
+        //     .update("RouteDetails")
+        //     .set({ estado: newStatus, fechaRevisado: formattedDate, revisadoPor: userId })
+        //     .where("id = :idProduct", { idProduct })
+        //     .execute();
+    
+        // if (updateResult.affected === 0) {
+        //     throw new NotFoundException("Product not found");
+        // }
+    
+        // this.webSocketGateway.emitProductScanned(idRoute, { id: idProduct, estado: newStatus });
+    
+        // return {
+        //     message: 'Product status has been updated successfully',
+        //     status: HttpStatus.OK,
+        //     data: { id: idProduct, status: newStatus, operation: 'update'}
+        // };
+    }
+
+    nowDate(){
         const now = new Date();
         const fechaFormateada = new Date().toLocaleString('es-CL', {
             year: 'numeric',
@@ -400,165 +514,12 @@ export class DeliveryService {
             second: '2-digit',
             hour12: false
         }).replace(',', '');
-
+    
         const milisegundos = String(now.getMilliseconds()).padStart(3, '0');
-
+    
         const [dia, mes, año, hora, minutos, segundos] = fechaFormateada.match(/\d+/g);
         const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
-
-        routeDetail.fechaPinchado = formattedDate;
-
-        await this.routeDetailsRepository.save(routeDetail);
-
-        const updatedProduct = {
-            ...routeDetail,
-            user: {
-                fullName: userMap.get(routeDetail.pinchadoPor)?.fullName || 'Unknown user'
-            }
-
-        };
-
-        this.webSocketGateway.emitProductScanned(idRoute, updatedProduct);
-
-        return {
-            message: 'Product scanned successfully',
-            status: HttpStatus.OK,
-            data: updatedProduct
-        };
-    }
-
-    async productoDis(pinchazoDisDto: PinchazoDisDto) {
-        const { codigoProducto, idRoute, pinchadoPor } = pinchazoDisDto;
-
-        // Buscar la ruta con ID idRoute
-        const route = await this.deliveryContainRepository.findOne({
-            where: { id: idRoute },
-            relations: ['routeDetails', 'routeDetails.user']
-        });
-
-        if (!route) throw new BadRequestException(`Route with ID ${idRoute} not found`);
-
-        // Verificar si el código de producto ya existe
-        const alreadyExists = route.routeDetails.some(
-            detail => detail.codigoProducto === codigoProducto && detail.codigoPinchazo === 'DIS'
-        );
-
-        if (alreadyExists) {
-            return {
-                message: 'DIS product already scanned',
-                status: HttpStatus.CONFLICT
-            };
-        }
-
-        // Obtener usuarios para mostrar nombres
-        const pinchadoPorIds = [...new Set(route.routeDetails
-            .map(detail => detail.pinchadoPor))];
-
-        const userMap = new Map<string, User>();
-        const users = await this.userRepository.find({
-            where: { id: In([...pinchadoPorIds, pinchadoPor]) }
-        });
-        users.forEach(user => userMap.set(user.id, user));
-
-        if (!userMap.has(pinchadoPor)) {
-            throw new NotFoundException({
-                status: HttpStatus.NOT_FOUND,
-                message: `User with ID ${pinchadoPor} not found`
-            });
-        }
-
-        // Crear un nuevo detalle de ruta para el producto DIS
-        const routeDetail = this.routeDetailsRepository.create({
-            numProduct: 0,
-            bindProduct: "",
-            patenteProducto: "",
-            codigoProducto: codigoProducto,
-            fuePinchado: true,
-            codigoPinchazo: 'DIS',
-            estado: 'Bind Erroneo',
-            pinchadoPor: pinchadoPor,
-            revisadoPor: pinchadoPor,
-            userId: pinchadoPor,
-            sessionDeliveryRoutesId: route.id
-        });
-
-        // Formatear la fecha
-        const now = new Date();
-        const fechaFormateada = now.toLocaleString('es-CL', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        }).replace(',', '');
-
-        const milisegundos = String(now.getMilliseconds()).padStart(3, '0');
-
-        const [dia, mes, año, hora, minutos, segundos] = fechaFormateada.match(/\d+/g);
-        const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
-
-        routeDetail.fechaPinchado = formattedDate;
-        routeDetail.fechaRevisado = formattedDate;
-
-        // Guardar el nuevo detalle
-        const savedDetail = await this.routeDetailsRepository.save(routeDetail);
-
-        // Preparar la respuesta
-        const updatedProduct = {
-            ...savedDetail,
-            user: {
-                fullName: userMap.get(savedDetail.pinchadoPor)?.fullName || 'Unknown user'
-            }
-        };
-
-        // Emitir evento WebSocket
-        this.webSocketGateway.emitProductScanned(idRoute, updatedProduct);
-
-        return {
-            message: 'DIS product scanned successfully',
-            status: HttpStatus.OK,
-            data: updatedProduct
-        };
-    }
-
-    async changeStatusProduct(idRoute: number, idProduct: number, newStatus: string, userId: string) {
-
-        const now = new Date();
-        const fechaFormateada = now.toLocaleString('es-CL', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        }).replace(',', '');
-
-        const milisegundos = String(now.getMilliseconds()).padStart(3, '0');
-
-        const [dia, mes, año, hora, minutos, segundos] = fechaFormateada.match(/\d+/g);
-        const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
-
-
-        const updateResult = await this.routeDetailsRepository
-            .createQueryBuilder()
-            .update("RouteDetails")
-            .set({ estado: newStatus, fechaRevisado: formattedDate, revisadoPor: userId })
-            .where("id = :idProduct", { idProduct })
-            .execute();
     
-        if (updateResult.affected === 0) {
-            throw new NotFoundException("Product not found");
-        }
-    
-        this.webSocketGateway.emitProductScanned(idRoute, { id: idProduct, estado: newStatus });
-    
-        return {
-            message: 'Product status has been updated successfully',
-            status: HttpStatus.OK,
-            data: { id: idProduct, status: newStatus, operation: 'update'}
-        };
-    }
+        return formattedDate
+      }
 }

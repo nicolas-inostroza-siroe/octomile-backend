@@ -21,7 +21,11 @@ export class PinchazoDisDto {
         example: '550e8400-e29b-41d4-a716-446655440000'
     })
     @IsUUID()
-    pinchadoPor: string;
+    pinchadoPorId: string;
+
+    @IsString()
+    @IsOptional()
+    pinchadoPorName: string;
 
     @ApiProperty({
         description: 'Información adicional del producto (opcional)',

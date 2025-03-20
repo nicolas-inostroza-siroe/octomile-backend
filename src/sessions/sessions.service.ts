@@ -1,8 +1,8 @@
 import { BadRequestException, HttpStatus, Inject, Injectable, Logger, NotFoundException, InternalServerErrorException, ConflictException, forwardRef } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
-import { Repository, In, IsNull } from 'typeorm';
+import { Repository, In, IsNull, EntityManager } from 'typeorm';
 import { SessionDetailEntity, SessionEntity } from './entities';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { PinchazoDto } from './dto/pinchazo.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
@@ -27,7 +27,9 @@ export class SessionsService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly commonService: CommonService,
-    private readonly webSocketGateway: webSocketGateway
+    private readonly webSocketGateway: webSocketGateway,
+    @InjectEntityManager()
+    private readonly entityManager: EntityManager
   ) { }
 
   async createSession(createSessionDto: CreateSessionDto) {
@@ -224,226 +226,188 @@ async getSiStatus() {
   
 
   async pincharProducto(pinchazoDto: PinchazoDto) {
-    const { codigoProducto, idSession } = pinchazoDto;
+    const { idSession, codigoProducto, pinchadoPorName, pinchadoPorId } = pinchazoDto;
 
-    const session = await this.sessionsRepository.findOne({
-        where: { id: idSession },
-        relations: {
-            sessionDetail: {
-                user: true
-            }
-        },
-        select: {
-            id: true,
-            sessionDetail: {
-              id: true,
-              numProduct:true,
-              bindProduct:true,
-              patenteProducto:true,
-              codigoProducto: true,
-              fuePinchado: true,
-              PinchadoPor: true,
-              fechaPinchado: true,
-              codigoPinchazo: true,
-              user: {
-                  id: true,
-                  fullName: true
-              }
-            }
-        }
-    });
+    console.time("Tiempo de consulta");
+    const start = performance.now();
 
-    if (!session) throw new BadRequestException(`session with ${idSession} not found`);
+    const query = `
+      SELECT id, numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo
+      FROM \`Session-details\`
+      WHERE idSesionId = ? AND codigoProducto = ?
+    `
 
-    const exist = session.sessionDetail.some(
-      detail => detail.codigoProducto === codigoProducto
-    )
-  
-    if(!exist){    
+    const res = await this.entityManager.query(query, [idSession, codigoProducto]);
+
+    if (res.length === 0) {
       return {
-        message: 'Product not exist',
-        status: HttpStatus.CONFLICT
-      }
+          message: 'Product not exist',
+          status: HttpStatus.CONFLICT
+      };
     }
 
-    const alreadyScanned = session.sessionDetail.some(
-      detail => detail.codigoProducto === codigoProducto && detail.fuePinchado === true
-    );
-  
-    if (alreadyScanned) {
-      return {
-        message: 'Product already scanned',
-        status: HttpStatus.CONFLICT
-      }
+    if (res[0].fuePinchado) {
+        return {
+            message: 'Product already scanned',
+            status: HttpStatus.CONFLICT
+        };
     }
- 
-    const pinchadoPorIds = [...new Set(session.sessionDetail
-        .map(detail => detail.PinchadoPor)
-        .filter(id => id))];
+      
+    const query2 = `
+      UPDATE \`Session-details\`
+      SET codigoPinchazo = 'DI', PinchadoPor = ?, fechaPinchado = ?, fuePinchado = true
+      WHERE id = ?
+    `;
 
-  
-    const users = await this.userRepository.findBy({
-        id: In(pinchadoPorIds)
-    });
+    const date = this.nowDate();
 
-    const userMap = new Map(users.map(user => [user.id, user.fullName]));
+    const update = await this.entityManager.query(query2, [pinchadoPorId, date, res[0].id]);
 
-    let updatedProduct = null;
+    if (!update.affectedRows && !update.rowCount) {
+        return {
+            message: 'Failed to update product',
+            status: HttpStatus.INTERNAL_SERVER_ERROR
+        };
+    }
 
-    session.sessionDetail = session.sessionDetail.map(detalle => {
-        if (detalle.codigoProducto === codigoProducto) {
-            detalle.fechaPinchado = new Date();
-            detalle.fuePinchado = true;
-            detalle.codigoPinchazo = 'DI';
-            detalle.PinchadoPor = pinchazoDto.pinchadoPor;
-            updatedProduct = {
-                ...detalle,
-                userName: detalle.user?.fullName || 'Unknown User',
-                pinchadoPorName: detalle.PinchadoPor ? userMap.get(detalle.PinchadoPor) || 'Unknown User' : null
-            };
-        }
-        return detalle;
-    });
+    const result = {
+        ...res[0],
+        codigoPinchazo: 'DI',
+        PinchadoPor: pinchadoPorId,
+        fechaPinchado: date,
+        pinchadoPorName: pinchadoPorName,
+        fuePinchado: true
+    };
 
-     await this.sessionsRepository.save(session);
 
-    this.webSocketGateway.emitSessionUpdate(idSession, updatedProduct);
+    const end = performance.now();
+    console.log(`Tiempo de consulta: ${(end - start).toFixed(2)} ms`);
+    console.timeEnd("Tiempo de consulta");
+
+    this.webSocketGateway.emitSessionUpdate(idSession, result);
 
     return {
       message: 'Product scanned successfully',
       status: HttpStatus.OK,
-      data: updatedProduct
-      
+      data: result
     }
+
 }
 
   async productoDis(pinchazo: pinchazoDisDto) {
-    const session = await this.sessionsRepository.findOne({
-        where: { id: pinchazo.idSession },
-        relations: {
-            sessionDetail: {
-                user: true
-            }
-        },
-        select: {
-            id: true,
-            sessionDetail: {
-                id: true,
-                numProduct: true,
-                bindProduct: true,
-                patenteProducto: true,
-                codigoProducto: true,
-                fuePinchado: true,
-                fechaPinchado: true,
-                codigoPinchazo: true,
-                PinchadoPor: true,
-                user: {
-                    fullName: true
-                }
-            }
-        }
-    });
 
-    if (!session) {
-        throw new NotFoundException(`Session with id ${pinchazo.idSession} not found`);
+    const date = this.nowDate()
+
+    const query = `
+    INSERT INTO \`Session-details\` (numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo, PinchadoPor, idSesionId)
+    VALUES (0, '', '', ? , true , ? , 'DIS', ?, ?)`
+
+    const res = await this.entityManager.query(query, [pinchazo.codigoProducto, date, pinchazo.pinchadoPorId, pinchazo.idSession])
+
+    if (!res.affectedRows || res.affectedRows === 0) {
+      throw new NotFoundException(`Error inserting ${pinchazo.codigoProducto} into Session-details`);
     }
 
-const pinchadoPorIds = [...new Set(session.sessionDetail
-        .map(detail => detail.PinchadoPor)
-        .filter(id => id))];
+    const data = {
+      id: res.insertId || null,
+      numProduct: 0,
+      bindProduct: "",
+      patenteProducto: "",
+      codigoProducto: pinchazo.codigoProducto,
+      fuePinchado: true,
+      fechaPinchado: date,
+      codigoPinchazo: 'DIS',
+      PinchadoPor: pinchazo.pinchadoPorId,
+      PinchadoPorName: pinchazo.pinchadoPorName
+    }
 
-    
-    const users = await this.userRepository.findBy({
-        id: In(pinchadoPorIds)
-    });
 
-    const userMap = new Map(users.map(user => [user.id, user.fullName]));
-
-    
-    const details = this.sessionsDetailsRepository.create({
-        numProduct: 0,
-        bindProduct: "",
-        patenteProducto: "",
-        codigoProducto: pinchazo.codigoProducto,
-        fuePinchado: true,
-        fechaPinchado: new Date(),
-        codigoPinchazo: 'DIS',
-        PinchadoPor: pinchazo.pinchadoPor || ""
-    });
-
-    session.sessionDetail.push(details);
-    const sessionUpdate = await this.sessionsRepository.save(session);
-
-   const updatedProduct = {
-    ...details,
-    userName: details.user?.fullName || 'Unknown User',
-    pinchadoPorName: details.PinchadoPor ? userMap.get(details.PinchadoPor) || 'Unknown User' : null
-};
-
-    this.webSocketGateway.emitSessionUpdate(pinchazo.idSession, updatedProduct);
+    this.webSocketGateway.emitSessionUpdate(pinchazo.idSession, data);
 
     return {
-      
         message: 'producto pinchado',
         status: HttpStatus.OK,
-        data: updatedProduct
-      
+        data: data
     };
 }
 
-  async DeletDis(deleteDisDto: DeleteDisDto) {
-    const { idSession, codigoProducto } = deleteDisDto;
+  // async DeletDis(deleteDisDto: DeleteDisDto) {
+  //   const { idSession, codigoProducto } = deleteDisDto;
 
-    const session = await this.sessionsRepository.findOne({
-      where: { id: idSession },
-      relations: { sessionDetail: true }
-    });
+  //   const session = await this.sessionsRepository.findOne({
+  //     where: { id: idSession },
+  //     relations: { sessionDetail: true }
+  //   });
 
-    if (!session) {
-      throw new NotFoundException(`Session with id ${idSession} not found`);
-    }
+  //   if (!session) {
+  //     throw new NotFoundException(`Session with id ${idSession} not found`);
+  //   }
 
 
-    session.sessionDetail = session.sessionDetail.filter(detail =>
-      !(detail.codigoPinchazo === 'DIS' && detail.codigoProducto === codigoProducto)
-    );
+  //   session.sessionDetail = session.sessionDetail.filter(detail =>
+  //     !(detail.codigoPinchazo === 'DIS' && detail.codigoProducto === codigoProducto)
+  //   );
 
-    const updatedSession = await this.sessionsRepository.save(session);
+  //   const updatedSession = await this.sessionsRepository.save(session);
 
-    return {
-      message: 'ok',
-      status: HttpStatus.OK,
-      data: updatedSession
-    };
-  }
+  //   return {
+  //     message: 'ok',
+  //     status: HttpStatus.OK,
+  //     data: updatedSession
+  //   };
+  // }
 
   async UpdateDis(DeletDisDto: DeleteDisDto) {
 
     const { idSession, codigoProducto, newStatus } = DeletDisDto;
 
-    const session = await this.sessionsRepository.findOne({
-      where: { id: idSession },
-      relations: { sessionDetail: true }
-    });
+    const query = `
+      UPDATE \`Session-details\`
+      SET codigoPinchazo = ? 
+      WHERE idSesionId = ? AND codigoProducto = ?
+    `
+  
+    const update = await this.entityManager.query(query, [newStatus, idSession, codigoProducto])
 
-    if (!session) {
-      throw new NotFoundException(`Session with id ${idSession} not found`);
+    if(!update.affectedRows && !update.rowCount){
+      return {
+        message: 'Failted to update product',
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      }
     }
 
+    const querySelect = `
+      SELECT id, numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo, PinchadoPor
+      FROM \`Session-details\`
+      WHERE idSesionId = ? AND codigoProducto = ?
+    `;
 
-    session.sessionDetail = session.sessionDetail.map(detalle => {
-      if (detalle.codigoProducto === codigoProducto && detalle.codigoPinchazo === 'DIS') {
+    const select = await this.entityManager.query(querySelect, [idSession, codigoProducto]);
+  
+    return {
+      message: 'Ok', status: HttpStatus.OK, sessionUpdate: select
+    }
+    
+    // const session = await this.sessionsRepository.findOne({
+    //   where: { id: idSession },
+    //   relations: { sessionDetail: true }
+    // });
 
-        detalle.codigoPinchazo = newStatus;
-      }
-      return detalle;
-    });
+    // if (!session) {
+    //   throw new NotFoundException(`Session with id ${idSession} not found`);
+    // }
 
-    const sessionUpdate = await this.sessionsRepository.save(session);
+    // session.sessionDetail = session.sessionDetail.map(detalle => {
+    //   if (detalle.codigoProducto === codigoProducto && detalle.codigoPinchazo === 'DIS') {
 
-    return { message: 'Ok', status: HttpStatus.OK, sessionUpdate };
+    //     detalle.codigoPinchazo = newStatus;
+    //   }
+    //   return detalle;
+    // });
 
+    // const sessionUpdate = await this.sessionsRepository.save(session);
 
+    // return { message: 'Ok', status: HttpStatus.OK, sessionUpdate };
   }
 
   async getSessionStatistics(idSession: number) {
@@ -529,5 +493,25 @@ const pinchadoPorIds = [...new Set(session.sessionDetail
         data: sessions
     };
 
+  }
+
+  nowDate(){
+    const now = new Date();
+    const fechaFormateada = new Date().toLocaleString('es-CL', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    }).replace(',', '');
+
+    const milisegundos = String(now.getMilliseconds()).padStart(3, '0');
+
+    const [dia, mes, año, hora, minutos, segundos] = fechaFormateada.match(/\d+/g);
+    const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
+
+    return formattedDate
   }
 }

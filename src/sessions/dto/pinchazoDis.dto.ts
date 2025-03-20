@@ -15,5 +15,12 @@ export class pinchazoDisDto {
     @ApiProperty({ required: false, nullable: true })
     @IsString()
     @IsOptional()
-    pinchadoPor: string;
+    pinchadoPorId: string;
+
+    @ApiProperty({ required: false, nullable: true })
+    @IsString()
+    @IsOptional()
+    pinchadoPorName: string;
+
+
 }
