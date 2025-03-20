@@ -55,14 +55,14 @@ export class VehicleEntity {
   @Column({ type: 'varchar' })
   ano_fabricacion: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  largo_m: number;
+  @Column({ type: 'varchar', precision: 5, scale: 2, nullable: true })
+  largo_m: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  ancho_m: number;
+  @Column({ type: 'varchar', precision: 5, scale: 2, nullable: true })
+  ancho_m: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  alto_m: number;
+  @Column({ type: 'varchar', precision: 5, scale: 2, nullable: true })
+  alto_m: string;
 
   @Column({ type: 'date', nullable: true })
   fecha_venc_revision_tecnica: Date;

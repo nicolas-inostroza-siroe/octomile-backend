@@ -67,9 +67,10 @@ export class DriversService {
         for (const file of files) {
             const uniqueFileName = `${Date.now()}-${file.originalname}`;
             const filePath = path.join(this.uploadDir, uniqueFileName);
+            const fileUrl = `/uploads/drivers/${uniqueFileName}`; // Store URL instead of file path
 
             await fs.promises.writeFile(filePath, file.buffer);
-            fileUrls[file.fieldname] = filePath;
+            fileUrls[file.fieldname] = fileUrl; // Store URL instead of file path
         }
 
         return fileUrls;

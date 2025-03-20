@@ -50,11 +50,11 @@ export class CompanyEntity {
   @Column({ type: 'varchar'})
   comunaRepresentante: string;
 
-  @Column({ type: 'varchar'})
-  direccionFisica: string;
+ 
 
   @Column({ type: 'varchar'})
   status: string;
+
   
   @CreateDateColumn()
   createdAt: Date;

@@ -3,10 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VehicleEntity, EstadoVehiculo } from './entities/vehicles.entity';
 import { PropietarioVehiculoEntity } from './entities/prop-vehicles.entity';
-import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { CreateVehicleDto } from './Dto/create-vehicle.dto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { UpdateVehicleStatusDto } from './dto/update-vehicle-status.dto';
+import { UpdateVehicleStatusDto } from './Dto/update-vehicle-status.dto';
+
 
 @Injectable()
 export class VehiclesService {
@@ -36,34 +37,29 @@ export class VehiclesService {
       seguro?: Express.Multer.File[]
     }
   ): Promise<VehicleEntity> {
-    // Verificar si ya existe un vehículo con la misma patente
-    const existingVehicle = await this.vehicleRepository.findOne({ 
-      where: { patente: createVehicleDto.patente } 
-    });
+    // Create the new vehicle
+    // Convert tipo_vehiculo to the proper TipoVehiculo enum
+    const { tipo_vehiculo, ano_fabricacion, ...otherData } = createVehicleDto;
+    const vehicleData: Partial<VehicleEntity> = {
+        ...otherData,
+        tipo_vehiculo: tipo_vehiculo as any, // Cast to any then to TipoVehiculo
+        ano_fabricacion: ano_fabricacion ? ano_fabricacion.toString() : undefined,
+        estado: EstadoVehiculo.ACTIVO,
+        documentos: {}
+    };
     
-    if (existingVehicle) {
-      throw new BadRequestException(`Ya existe un vehículo con la patente ${createVehicleDto.patente}`);
-    }
+    const newVehicle = this.vehicleRepository.create(vehicleData);
     
-    // Ya no verificamos el propietario, simplemente usamos el valor proporcionado en el DTO
+    // Save first to get the ID
+    const result = await this.vehicleRepository.save(newVehicle);
+    const savedVehicle = Array.isArray(result) ? result[0] : result;
     
-    // Crear el nuevo vehículo
-    const newVehicle = this.vehicleRepository.create({
-      ...createVehicleDto,
-      // Establecer valores predeterminados
-      estado: createVehicleDto.estado || EstadoVehiculo.ACTIVO,
-      documentos: {}
-    });
-    
-    // Guardar primero para obtener el ID
-    const savedVehicle = await this.vehicleRepository.save(newVehicle);
-    
-    // Después de guardar el vehículo, procesar y guardar los archivos
+    // Process files after saving
     await this.processFiles(savedVehicle, files);
     
-    // Volver a cargar el vehículo con los datos actualizados
+    // Reload the vehicle with updated data
     return await this.vehicleRepository.findOne({ 
-      where: { id_vehiculo: savedVehicle.id_vehiculo } 
+        where: { id_vehiculo: savedVehicle.id_vehiculo } 
     });
   }
 
@@ -163,8 +159,9 @@ export class VehiclesService {
     // Guardar el archivo en disco
     fs.writeFileSync(filePath, file.buffer);
     
-    // Devolver ruta relativa para guardar en BD
-    return path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    // Convertir la ruta a formato URL para acceso web
+    const relativePath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    return `/api/uploads/${relativePath}`;
   }
 
   /**
@@ -226,23 +223,14 @@ async updateVehicleStatus(
     throw new NotFoundException(`No se encontró un vehículo con ID ${vehiculoId}`);
   }
 
-  // Verificar y actualizar propietario si se proporciona
+  // Actualizar propietario si se proporciona
   if (updateDto.id_propietario) {
-    const propietario = await this.propietarioRepository.findOne({
-      where: { id_propietario: Number(updateDto.id_propietario) }
-    });
-
-    if (!propietario) {
-      throw new NotFoundException(
-        `No se encontró un propietario con ID ${updateDto.id_propietario}`
-      );
-    }
     vehicle.id_propietario = updateDto.id_propietario;
   }
 
   // Actualizar estado si se proporciona
   if (updateDto.estado) {
-    vehicle.estado = updateDto.estado;
+    vehicle.estado = updateDto.estado as EstadoVehiculo;
   }
 
   // Guardar cambios

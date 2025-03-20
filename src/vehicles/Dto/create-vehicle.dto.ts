@@ -10,21 +10,20 @@ export class CreateVehicleDto {
 
   @ApiProperty({ description: 'ID del propietario del vehículo' })
   @IsString()
-  @IsOptional()
-  id_propietario?: string;
+  id_propietario: string;
 
   @ApiProperty({ description: 'ID de la póliza asociada al vehículo' })
   @IsInt()
   @IsOptional()
   id_poliza?: number;
 
-  @ApiProperty({ description: 'Patente o matrícula del vehículo' })
+  @ApiProperty({ description: 'Patente del vehículo' })
   @IsString()
   patente: string;
 
-  @ApiProperty({ description: 'Tipo de vehículo', enum: TipoVehiculo })
-  @IsEnum(TipoVehiculo)
-  tipo_vehiculo: TipoVehiculo;
+  @ApiProperty({ description: 'Tipo de vehículo' })
+  @IsString()
+  tipo_vehiculo: string;
 
   @ApiProperty({ description: 'Capacidad de carga en kilogramos' })
   @IsDecimal()
@@ -45,23 +44,23 @@ export class CreateVehicleDto {
   modelo: string;
 
   @ApiProperty({ description: 'Año de fabricación' })
+  @IsNumber()
+  ano_fabricacion: number;
+
+  @ApiProperty({ description: 'Largo del vehículo en metros', required: false })
+  @IsOptional()
   @IsString()
-  ano_fabricacion: string;
+  largo_m?: string;
 
-  @ApiProperty({ description: 'Largo del vehículo en metros' })
-  @IsDecimal()
+  @ApiProperty({ description: 'Ancho del vehículo en metros', required: false })
   @IsOptional()
-  largo_m?: number;
+  @IsString()
+  ancho_m?: string;
 
-  @ApiProperty({ description: 'Ancho del vehículo en metros' })
-  @IsDecimal()
+  @ApiProperty({ description: 'Alto del vehículo en metros', required: false })
   @IsOptional()
-  ancho_m?: number;
-
-  @ApiProperty({ description: 'Alto del vehículo en metros' })
-  @IsDecimal()
-  @IsOptional()
-  alto_m?: number;
+  @IsString()
+  alto_m?: string;
 
   @ApiProperty({ description: 'Fecha de vencimiento de la revisión técnica' })
   @IsString()
@@ -112,7 +111,7 @@ export class CreateVehicleDto {
   @IsOptional()
   documentos?: Record<string, string>;
 
-  @ApiProperty({ description: 'Usuario que crea el registro del vehículo' })
+  @ApiProperty({ description: 'Usuario que crea el registro' })
   @IsString()
   creado_por: string;
 }

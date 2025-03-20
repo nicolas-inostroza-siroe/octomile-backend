@@ -24,6 +24,21 @@ export class DriversEntity {
   
     @Column({ type: 'varchar'})
     tipo: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    tipo_identificacion: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    direccion: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    telefono: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    correo_electronico: string;
+
+    @Column({ type: 'varchar', nullable: true })
+    clase_licencia: string;
   
     @Column({ type: 'varchar',nullable: true})
     permiso_circulacion: string;

@@ -13,6 +13,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DeliveryModule } from './delivery/delivery.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
+import { OwnersModule } from './owners/owners.module';
 
 @Module({
   imports: [
@@ -20,9 +21,12 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads', // accedes a los archivos vía http://localhost:3000/uploads
+      serveRoot: '/api/uploads', // Match with your global prefix
+      serveStaticOptions: {
+        index: false,
+        fallthrough: true
+      }
     }),
-
 
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -45,7 +49,8 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     CompanyModule,
     DriversModule,
     DeliveryModule,
-    VehiclesModule
+    VehiclesModule,
+    OwnersModule
   ],
 
 })
