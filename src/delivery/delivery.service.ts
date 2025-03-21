@@ -290,10 +290,13 @@ export class DeliveryService {
         }
 
         const query = `
-            SELECT rs.*,user.fullName
+            SELECT rs.id, rs.bindProduct, rs.codigoPinchazo, rs.codigoProducto, rs.estado, rs.fechaPinchado, rs.fechaRevisado, rs.fuePinchado, rs.numProduct, rs.sessionDeliveryRoutesId, rs.sessionDetailsId 
+            ,user.fullName,
+            user2.fullName as revisadoPorName
             FROM RouteDetails rs
             LEFT JOIN \`Session-details\` sd ON sd.id = rs.sessionDetailsId
             LEFT JOIN user_octomile user ON user.id = rs.userId
+            LEFT JOIN user_octomile user2 on user2.id = rs.revisadoPor
             WHERE rs.sessionDeliveryRoutesId = ? ${andWhere}
         `;
 
@@ -303,6 +306,7 @@ export class DeliveryService {
             ...row,
             user: {
                 fullName: row.fullName,
+                revisadoPor: row.revisadoPorName
             }
         }));
 

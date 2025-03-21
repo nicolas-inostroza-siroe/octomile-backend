@@ -292,6 +292,8 @@ async getSiStatus() {
 
   async productoDis(pinchazo: pinchazoDisDto) {
 
+    console.log(pinchazo);
+
     const date = this.nowDate()
 
     const query = `
@@ -314,7 +316,7 @@ async getSiStatus() {
       fechaPinchado: date,
       codigoPinchazo: 'DIS',
       PinchadoPor: pinchazo.pinchadoPorId,
-      PinchadoPorName: pinchazo.pinchadoPorName
+      pinchadoPorName: pinchazo.pinchadoPorName
     }
 
 
