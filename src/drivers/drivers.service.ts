@@ -1,11 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { DriversEntity } from './entities/drivers.entity';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { CompanyEntity } from 'src/company/entities/company.entity';
+import { EstadoVehiculo, VehicleEntity } from 'src/vehicles/entities/vehicles.entity';
 
 @Injectable()
 export class DriversService {
@@ -15,7 +16,9 @@ export class DriversService {
         @InjectRepository(DriversEntity)
         private readonly driverRepository: Repository<DriversEntity>,
         @InjectRepository(CompanyEntity)
-        private readonly companyRepository: Repository<CompanyEntity>
+        private readonly companyRepository: Repository<CompanyEntity>,
+        @InjectEntityManager()
+        private readonly entityManager: EntityManager
     ) {
         if (!fs.existsSync(this.uploadDir)) {
             fs.mkdirSync(this.uploadDir, { recursive: true });
@@ -212,17 +215,26 @@ export class DriversService {
     }
 
     async findActiveDrivers() {
-        const drivers = await this.driverRepository.find({
-            where: { status: 'active' },
-            select: ['id','nombre_apellido', 'empresa', 'patente', 'tipo']
-        });
 
-        return drivers.map(driver => ({
-            id:driver.id,
-            nombre_apellido: driver.nombre_apellido,
-            empresa: driver.empresa,
-            patente: driver.patente,
-            tipo: driver.tipo
-        }));
+        const query = `
+            SELECT d.id, d.nombre_apellido, d.empresa, d.usuario, d.tipo, v.id_vehiculo, v.patente, v.tipo_vehiculo, v.marca, v.modelo
+            FROM drivers d
+            LEFT JOIN vehiculos v ON v.patente = d.patente 
+            WHERE status = 'active' 
+        `;
+
+        const drivers = await this.entityManager.query(query, [])
+
+
+
+        const query2 = `
+            SELECT v.id_vehiculo, v.patente, v.tipo_vehiculo, v.marca, v.modelo, d.id, d.nombre_apellido, d.empresa, d.usuario
+            FROM vehiculos v
+            LEFT JOIN drivers d ON d.patente = v.patente
+            WHERE estado = 'Activo'
+        `
+        const patente = await this.entityManager.query(query2, [])
+
+        return {drivers, patente}
     }
 }

@@ -231,7 +231,7 @@ export class DeliveryService {
         return data
     }
 
-    async updateDriverForRoute(routeId: number, driverId: number, userId: string) {
+    async updateDriverForRoute(routeId: number, driverId: number, patenteId: number, userId: string) {
         const route = await this.deliveryContainRepository.findOne({
             where: { id: routeId },
         });
@@ -245,23 +245,40 @@ export class DeliveryService {
 
         route.driverId = driverId;
         route.gestor = userId;
+        route.patenteId = patenteId;
         await this.deliveryContainRepository.save(route);
 
-        const updatedRoute = await this.deliveryContainRepository.findOne({
-            where: { id: routeId },
-            relations: ['driver', 'user']
-        });
+        // const updatedRoute = await this.deliveryContainRepository.findOne({
+        //     where: { id: routeId },
+        //     relations: ['driver', 'user']
+        // });
+
+        const query = `
+            SELECT s.id, s.numero, s.patente, s.sessionDelivery_id, s.status, s.bind,
+                   u.fullName,
+                   d.empresa, d.nombre_apellido,
+                   v.patente as patenteDriver
+            FROM sessionDeliveryRoutes s
+            LEFT JOIN user_octomile u ON u.id = s.gestor
+            LEFT JOIN drivers d ON d.id = s.driverId
+            LEFT JOIN vehiculos v ON v.id_vehiculo = s.patenteId
+            WHERE s.id = ?  
+        `;
+
+        const select = await this.entityManager.query(query, [routeId])
+
+
+
 
         return {
             status: HttpStatus.OK,
             message: 'Driver updated successfully for the route',
-            data: {
-                ...updatedRoute,
-                nombre_apellido: updatedRoute.driver.nombre_apellido,
-                empresa: updatedRoute.driver.empresa,
-                patenteDriver: updatedRoute.driver.patente,
-                fullName: updatedRoute.user.fullName
-            }
+            data: select[0]
+                // ...updatedRoute,
+                // nombre_apellido: updatedRoute.driver.nombre_apellido,
+                // empresa: updatedRoute.driver.empresa,
+                // patenteDriver: updatedRoute.driver.patente,
+                // fullName: updatedRoute.user.fullName
         };
     }
 
@@ -336,12 +353,14 @@ export class DeliveryService {
         const { codigoProducto, idRoute, pinchadoPorName, pinchadoPorId } = pinchazoDto;
 
         const query = `
-            SELECT numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo
+            SELECT id, numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo
             FROM RouteDetails
             WHERE sessionDeliveryRoutesId = ? AND codigoProducto = ?
         `
 
         const res = await this.entityManager.query(query, [idRoute, codigoProducto])
+
+
 
         if(res.length === 0){
             return {
@@ -365,7 +384,9 @@ export class DeliveryService {
 
         const date = this.nowDate();
 
-        const update = await this.entityManager.query(query2, [pinchadoPorId, date, res[0].id]);
+        const update = await this.entityManager.query(query2, [pinchadoPorId, date, pinchadoPorId, res[0].id]);
+
+        // console.log("res: ",res, "update: ", update);
 
         if (!update.affectedRows && !update.rowCount) {
             return {
@@ -458,7 +479,7 @@ export class DeliveryService {
             }
         }
 
-        this.webSocketGateway.emitProductScanned(idRoute, { id: idProduct, estado: newStatus });
+        this.webSocketGateway.emitProductScanned(idRoute, { id: idProduct, estado: newStatus, operation: 'update' });
     
         return {
             message: 'Product status has been updated successfully',

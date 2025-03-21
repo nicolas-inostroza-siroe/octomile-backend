@@ -228,8 +228,6 @@ async getSiStatus() {
   async pincharProducto(pinchazoDto: PinchazoDto) {
     const { idSession, codigoProducto, pinchadoPorName, pinchadoPorId } = pinchazoDto;
 
-    console.time("Tiempo de consulta");
-    const start = performance.now();
 
     const query = `
       SELECT id, numProduct, bindProduct, patenteProducto, codigoProducto, fuePinchado, fechaPinchado, codigoPinchazo
@@ -281,8 +279,6 @@ async getSiStatus() {
 
 
     const end = performance.now();
-    console.log(`Tiempo de consulta: ${(end - start).toFixed(2)} ms`);
-    console.timeEnd("Tiempo de consulta");
 
     this.webSocketGateway.emitSessionUpdate(idSession, result);
 

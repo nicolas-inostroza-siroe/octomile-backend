@@ -4,6 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { RouteDetailsEntity } from "./RouteDetails.entity";
 import { User } from "src/auth/entities/user.entity";
 import { sessionDeliveryEntity } from "./sessiondelivery.entity";
+import { VehicleEntity } from "src/vehicles/entities/vehicles.entity";
 
 
 
@@ -35,12 +36,20 @@ export class sessionDeliveryRoutesEntity {
     @Column({ type: 'int', nullable: true })
     driverId: number;
 
+    @Column({type: 'int', nullable: true})
+    patenteId: number;
+
     @Column()
     bind:string;
 
     @ManyToOne(() => DriversEntity)
     @JoinColumn({ name: 'driverId' })
     driver: DriversEntity;
+
+    @ManyToOne(() => VehicleEntity)
+    @JoinColumn({ name: 'patenteId'})
+    Patente: VehicleEntity;
+
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'gestor' })

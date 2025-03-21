@@ -90,13 +90,14 @@ export class DeliveryController {
         };
     }
 
-    @Patch('route/:routeId/driver/:driverId')
+    @Patch('route/:routeId/driver/:driverId/patente/:patenteId')
     async updateDriverForRoute(
         @Param('routeId') routeId: number,
         @Param('driverId') driverId: number,
+        @Param('patenteId') patenteId: number,
         @Body('userId') userId: string
     ) {
-        const updatedRoute = await this.deliveryService.updateDriverForRoute(routeId, driverId, userId);
+        const updatedRoute = await this.deliveryService.updateDriverForRoute(routeId, driverId, patenteId, userId);
         return {
             status: updatedRoute.status,
             message: updatedRoute.message,
