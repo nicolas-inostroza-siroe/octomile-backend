@@ -106,4 +106,14 @@ export class DriversController {
             data: drivers
         };
     }
+
+    @Get('by-patente/:patente')
+    async findOwnerByPatente(@Param('patente') patente: string) {
+        const ownerData = await this.driversService.findOwnerByPatente(patente);
+        return {
+            status: HttpStatus.OK,
+            message: 'Owner information retrieved successfully',
+            data: ownerData
+        };
+    }
 }
