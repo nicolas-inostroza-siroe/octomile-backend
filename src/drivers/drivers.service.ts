@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
@@ -239,5 +239,51 @@ export class DriversService {
         const patente = await this.entityManager.query(query2, [])
 
         return {drivers, patente}
+    }
+
+    /**
+     * Busca el propietario de un vehículo por patente
+     * @param patente Patente del vehículo
+     * @returns Información del propietario
+     */
+    async findOwnerByPatente(patente: string) {
+        // Primero buscamos el vehículo por patente
+        const vehicle = await this.entityManager.query(
+            `SELECT v.id_vehiculo, v.patente, v.tipo_vehiculo, v.marca, v.modelo, v.id_propietario 
+             FROM vehiculos v 
+             WHERE v.patente = ? AND v.estado = 'Activo'`,
+            [patente]
+        );
+
+        // Si no hay vehículo con esa patente
+        if (!vehicle || vehicle.length === 0) {
+            throw new NotFoundException(`No se encontró un vehículo con la patente: ${patente}`);
+        }
+
+        // Obtenemos el ID del propietario
+        const propietarioId = vehicle[0].id_propietario;
+        
+        if (!propietarioId) {
+            throw new NotFoundException(`El vehículo con patente ${patente} no tiene propietario asignado`);
+        }
+
+        // Buscamos los datos del propietario
+        const owner = await this.entityManager.query(
+            `SELECT o.id_propietario, o.nombre_completo, o.tipo_identificacion, 
+                    o.numero_identificacion, o.telefono, o.direccion, o.estado
+             FROM owners o 
+             WHERE o.id_propietario = ?`,
+            [propietarioId]
+        );
+
+        if (!owner || owner.length === 0) {
+            throw new NotFoundException(`No se encontró el propietario con ID: ${propietarioId}`);
+        }
+
+        // Devolvemos información completa
+        return {
+            vehicle: vehicle[0],
+            owner: owner[0]
+        };
     }
 }
