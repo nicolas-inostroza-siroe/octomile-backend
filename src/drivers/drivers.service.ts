@@ -165,14 +165,17 @@ export class DriversService {
         const empresasUnicas = await this.companyRepository
         .createQueryBuilder('company')
         .select('company.razonSocial', 'razonSocial')
+        .addSelect('company.rut', 'rut')
         .addSelect('MIN(company.id)', 'id') 
         .groupBy('company.razonSocial')
+        .addGroupBy('company.rut')
         .getRawMany();
 
    
     return empresasUnicas.map(item => ({
         id: +item.id, // convierte a número
         razonSocial: item.razonSocial,
+        rut: item.rut
     }));
     }
 
