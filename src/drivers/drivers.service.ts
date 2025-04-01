@@ -7,6 +7,8 @@ import { DriversEntity } from './entities/drivers.entity';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { CompanyEntity } from 'src/company/entities/company.entity';
 import { EstadoVehiculo, VehicleEntity } from 'src/vehicles/entities/vehicles.entity';
+import * as ExcelJS from 'exceljs';
+import * as AdmZip from 'adm-zip';
 
 @Injectable()
 export class DriversService {
@@ -244,46 +246,157 @@ export class DriversService {
     /**
      * Busca el propietario de un vehículo por patente
      * @param patente Patente del vehículo
-     * @returns Información del propietario
+     * @returns Información del conductor, vehículo y propietario
      */
     async findOwnerByPatente(patente: string) {
-        // Primero buscamos el vehículo por patente
-        const vehicle = await this.entityManager.query(
-            `SELECT v.id_vehiculo, v.patente, v.tipo_vehiculo, v.marca, v.modelo, v.id_propietario 
-             FROM vehiculos v 
-             WHERE v.patente = ? AND v.estado = 'Activo'`,
-            [patente]
-        );
-
-        // Si no hay vehículo con esa patente
-        if (!vehicle || vehicle.length === 0) {
-            throw new NotFoundException(`No se encontró un vehículo con la patente: ${patente}`);
+        // Validación
+        if (!patente) {
+            throw new NotFoundException('La patente es requerida');
         }
-
-        // Obtenemos el ID del propietario
-        const propietarioId = vehicle[0].id_propietario;
         
-        if (!propietarioId) {
-            throw new NotFoundException(`El vehículo con patente ${patente} no tiene propietario asignado`);
+        // Normalizar patente
+        patente = patente.toUpperCase().trim();
+        
+        // 1. Buscar el conductor asociado a la patente
+        const driver = await this.driverRepository.findOne({
+            where: { patente: patente }
+        });
+        
+        // 2. Buscar el vehículo con la misma patente
+        const vehicle = await this.entityManager.getRepository("vehiculos").findOne({
+            where: { patente: patente }
+        });
+        
+        if (!vehicle && !driver) {
+            throw new NotFoundException(`No se encontró vehículo ni conductor con la patente ${patente}`);
         }
-
-        // Buscamos los datos del propietario
-        const owner = await this.entityManager.query(
-            `SELECT o.id_propietario, o.nombre_completo, o.tipo_identificacion, 
-                    o.numero_identificacion, o.telefono, o.direccion, o.estado
-             FROM owners o 
-             WHERE o.id_propietario = ?`,
-            [propietarioId]
-        );
-
-        if (!owner || owner.length === 0) {
-            throw new NotFoundException(`No se encontró el propietario con ID: ${propietarioId}`);
+        
+        // 3. Si hay vehículo y tiene propietario asignado, buscar datos del propietario
+        let owner = null;
+        if (vehicle && vehicle.id_propietario) {
+            console.log('ID propietario en vehículo:', vehicle.id_propietario);
+            
+            owner = await this.entityManager.getRepository('owners').findOne({
+                where: { id: vehicle.id_propietario }
+            });
+            
+            if (!owner) {
+                console.log('No se encontró propietario con ese ID');
+            }
         }
-
-        // Devolvemos información completa
+        
+        // Devolver todos los datos encontrados
         return {
-            vehicle: vehicle[0],
-            owner: owner[0]
+            driver: driver,
+            vehicle: vehicle,
+            owner: owner
         };
+    }
+
+    /**
+     * Genera un archivo ZIP con los datos de los conductores en un Excel y sus documentos asociados
+     * organizados en carpetas con los nombres de los conductores
+     * @returns Buffer del archivo ZIP
+     */
+    async downloadDriversWithDocuments(): Promise<{ buffer: Buffer, filename: string }> {
+        try {
+            // 1. Obtener todos los conductores
+            const drivers = await this.driverRepository.find();
+            if (!drivers || drivers.length === 0) {
+                throw new HttpException('No hay conductores para descargar', HttpStatus.NOT_FOUND);
+            }
+
+            // 2. Crear un archivo Excel con la información de los conductores
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Conductores');
+
+            // Definir las columnas del Excel
+            worksheet.columns = [
+                { header: 'ID', key: 'id', width: 10 },
+                { header: 'Nombre y Apellido', key: 'nombre_apellido', width: 30 },
+                { header: 'Empresa', key: 'empresa', width: 30 },
+                { header: 'RUT', key: 'rut', width: 15 },
+                { header: 'Patente', key: 'patente', width: 15 },
+                { header: 'Email', key: 'email', width: 30 },
+                { header: 'Teléfono', key: 'telefono', width: 15 },
+                { header: 'Tipo', key: 'tipo', width: 15 },
+                { header: 'Status', key: 'status', width: 15 }
+            ];
+
+            // Agregar datos al Excel
+            drivers.forEach(driver => {
+                worksheet.addRow({
+                    id: driver.id,
+                    nombre_apellido: driver.nombre_apellido,
+                    empresa: driver.empresa,
+                    rut: driver.rut,
+                    patente: driver.patente,
+                    telefono: driver.telefono,
+                    tipo: driver.tipo,
+                    status: driver.status
+                });
+            });
+
+            // 3. Guardar el Excel temporalmente
+            const excelBuffer = await workbook.xlsx.writeBuffer();
+
+            // 4. Crear un zip y agregar el Excel
+            const zip = new AdmZip();
+            zip.addFile('conductores.xlsx', Buffer.from(excelBuffer));
+
+            // 5. Para cada conductor, agregar sus documentos al zip en carpetas separadas
+            for (const driver of drivers) {
+                const folderName = `${driver.nombre_apellido.replace(/[^a-zA-Z0-9]/g, '_')}_${driver.id}`;
+                
+                // Lista de campos de documentos
+                const documentFields = [
+                    'permiso_circulacion',
+                    'revision_tecnica',
+                    'soap_al_dia',
+                    'Carnet_de_identidad_vigente',
+                    'licencia_conductor_vigente',
+                    'certificado_antecedentes_vigente',
+                    'certificado_anotaciones_vigente',
+                    'fotografia1',
+                    'fotografia2',
+                    'fotografia3',
+                    'fotografia4'
+                ];
+
+                // Para cada campo de documento, verificar si existe y agregarlo al zip
+                for (const field of documentFields) {
+                    if (driver[field]) {
+                        try {
+                            // Obtener la ruta del archivo eliminando el prefijo de la URL
+                            const filePath = path.join(process.cwd(), driver[field].replace(/^\//, ''));
+                            
+                            if (fs.existsSync(filePath)) {
+                                const fileName = path.basename(filePath);
+                                const fileData = fs.readFileSync(filePath);
+                                zip.addFile(`${folderName}/${field}_${fileName}`, fileData);
+                            }
+                        } catch (error) {
+                            console.error(`Error al agregar documento ${field} del conductor ${driver.nombre_apellido}:`, error);
+                            // Continuamos con el siguiente documento si hay un error
+                        }
+                    }
+                }
+            }
+
+            // 6. Generar el buffer del zip
+            const zipBuffer = zip.toBuffer();
+            
+            return { 
+                buffer: zipBuffer, 
+                filename: `conductores_documentos_${new Date().toISOString().slice(0, 10)}.zip`
+            };
+
+        } catch (error) {
+            console.error('Error al generar el ZIP de conductores:', error);
+            throw new HttpException(
+                `Error al generar la descarga: ${error.message}`,
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 }
