@@ -120,15 +120,27 @@ export class DriversController {
   }
 
   @Get('download-all')
-  async downloadAllDriversWithDocuments(@Res() res: Response) {
-    const { buffer, filename } = await this.driversService.downloadDriversWithDocuments();
-    
-    res.set({
-      'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename=${filename}`,
-      'Content-Length': buffer.length,
-    });
-    
-    res.end(buffer);
+  async downloadAllDriversWithDocuments(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res() res: Response
+  ) {
+    try {
+      const { buffer, filename } = await this.driversService.downloadDriversWithDocuments(startDate, endDate);
+      
+      res.set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': buffer.length,
+      });
+      
+      res.end(buffer);
+    } catch (error) {
+      res.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json({
+        statusCode: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error.message || 'Error al generar la descarga',
+        error: error.name || 'Internal Server Error'
+      });
+    }
   }
 }
