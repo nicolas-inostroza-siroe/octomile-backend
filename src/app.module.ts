@@ -14,6 +14,7 @@ import { join } from 'path';
 import { DeliveryModule } from './delivery/delivery.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { OwnersModule } from './owners/owners.module';
+import { ReceptionProductsModule } from './reception-products/reception-products.module';
 
 @Module({
   imports: [
@@ -37,7 +38,7 @@ import { OwnersModule } from './owners/owners.module';
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       synchronize: true,
-      //logging: true,
+      logging: true,
     }),
 
     ShipmentLoadModule,
@@ -50,7 +51,8 @@ import { OwnersModule } from './owners/owners.module';
     DriversModule,
     DeliveryModule,
     VehiclesModule,
-    OwnersModule
+    OwnersModule,
+    ReceptionProductsModule
   ],
 
 })
