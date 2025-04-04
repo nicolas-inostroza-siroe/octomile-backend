@@ -295,15 +295,45 @@ export class DriversService {
 
     /**
      * Genera un archivo ZIP con los datos de los conductores en un Excel y sus documentos asociados
-     * organizados en carpetas con los nombres de los conductores
+     * organizados en carpetas con los nombres de los conductores, filtrados por rango de fecha
+     * @param startDate Fecha de inicio del rango (opcional)
+     * @param endDate Fecha de fin del rango (opcional)
      * @returns Buffer del archivo ZIP
      */
-    async downloadDriversWithDocuments(): Promise<{ buffer: Buffer, filename: string }> {
+    async downloadDriversWithDocuments(startDate?: string, endDate?: string): Promise<{ buffer: Buffer, filename: string }> {
         try {
-            // 1. Obtener todos los conductores
-            const drivers = await this.driverRepository.find();
+            // Crear el query builder para permitir filtrado
+            let queryBuilder = this.driverRepository.createQueryBuilder('driver');
+            
+            // Aplicar filtros de fecha si se proporcionan
+            if (startDate && endDate) {
+                const startDateObj = new Date(startDate);
+                // Establecer la fecha final al final del día
+                const endDateObj = new Date(endDate);
+                endDateObj.setHours(23, 59, 59, 999);
+                
+                queryBuilder = queryBuilder.andWhere('driver.created_at BETWEEN :startDate AND :endDate', {
+                    startDate: startDateObj,
+                    endDate: endDateObj
+                });
+            } else if (startDate) {
+                const startDateObj = new Date(startDate);
+                queryBuilder = queryBuilder.andWhere('driver.created_at >= :startDate', {
+                    startDate: startDateObj
+                });
+            } else if (endDate) {
+                const endDateObj = new Date(endDate);
+                endDateObj.setHours(23, 59, 59, 999);
+                queryBuilder = queryBuilder.andWhere('driver.created_at <= :endDate', {
+                    endDate: endDateObj
+                });
+            }
+            
+            // Ejecutar la consulta
+            const drivers = await queryBuilder.getMany();
+            
             if (!drivers || drivers.length === 0) {
-                throw new HttpException('No hay conductores para descargar', HttpStatus.NOT_FOUND);
+                throw new HttpException('No hay conductores para el rango de fechas seleccionado', HttpStatus.NOT_FOUND);
             }
 
             // 2. Crear un archivo Excel con la información de los conductores
@@ -320,7 +350,8 @@ export class DriversService {
                 { header: 'Email', key: 'email', width: 30 },
                 { header: 'Teléfono', key: 'telefono', width: 15 },
                 { header: 'Tipo', key: 'tipo', width: 15 },
-                { header: 'Status', key: 'status', width: 15 }
+                { header: 'Status', key: 'status', width: 15 },
+                { header: 'Fecha de Creación', key: 'created_at', width: 20 }
             ];
 
             // Agregar datos al Excel
@@ -331,11 +362,23 @@ export class DriversService {
                     empresa: driver.empresa,
                     rut: driver.rut,
                     patente: driver.patente,
+                    
                     telefono: driver.telefono,
                     tipo: driver.tipo,
-                    status: driver.status
+                    status: driver.status,
+                    created_at: driver.created_at ? new Date(driver.created_at).toLocaleDateString() : 'N/A'
                 });
             });
+
+            // Generate file name with date range info if provided
+            let dateRangeInfo = '';
+            if (startDate && endDate) {
+                dateRangeInfo = `_${startDate.replace(/-/g, '')}_${endDate.replace(/-/g, '')}`;
+            } else if (startDate) {
+                dateRangeInfo = `_desde_${startDate.replace(/-/g, '')}`;
+            } else if (endDate) {
+                dateRangeInfo = `_hasta_${endDate.replace(/-/g, '')}`;
+            }
 
             // 3. Guardar el Excel temporalmente
             const excelBuffer = await workbook.xlsx.writeBuffer();
@@ -388,7 +431,7 @@ export class DriversService {
             
             return { 
                 buffer: zipBuffer, 
-                filename: `conductores_documentos_${new Date().toISOString().slice(0, 10)}.zip`
+                filename: `conductores_documentos${dateRangeInfo}_${new Date().toISOString().slice(0, 10)}.zip`
             };
 
         } catch (error) {
