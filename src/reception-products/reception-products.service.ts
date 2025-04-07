@@ -55,6 +55,53 @@ export class ReceptionProductsService {
     };
   }
 
+  async createSingle(createSingleProductDto: any) {
+    const nowDate = this.nowDate();
+
+    // Format date fields to 'YYYY-MM-DD' format
+    const formatDate = (dateString) => {
+      if (!dateString) return null;
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+    };
+
+    const insertQuery = `
+      INSERT INTO receptionProduct (
+        guia, codigo, codigoDos, empresa, conductor, patente, 
+        fechaCreacion, fechaSalida, fechaGestion, origen, diasAtraso,
+        motivo, destino, lugarFisico, estadoPorGestor, estado, fechaIngreso
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      createSingleProductDto.guia,
+      createSingleProductDto.codigo,
+      createSingleProductDto.codigoDos,
+      createSingleProductDto.empresa,
+      createSingleProductDto.conductor,
+      createSingleProductDto.patente,
+      formatDate(createSingleProductDto.fechaCreacion),
+      formatDate(createSingleProductDto.fechaSalida),
+      formatDate(createSingleProductDto.fechaGestion),
+      createSingleProductDto.origen,
+      createSingleProductDto.diasAtraso || 0, // Use diasAtraso from frontend or default to 0
+      createSingleProductDto.motivo,
+      createSingleProductDto.destino,
+      createSingleProductDto.lugarFisico,
+      createSingleProductDto.estadoPorGestor,
+      createSingleProductDto.estado || 'Pendiente', // Added estado field with default value
+      nowDate
+    ];
+ 
+    await this.entityManager.query(insertQuery, values);
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Reception product created successfully',
+    };
+  }
+
   async findAll(page: number, size: number, searchQuery: string, selectedDate: string, selectTypeBy: string, selectTypeDate: string) {
 
     console.log("searchQuery: ", searchQuery, "selectedDate: ",  selectedDate, "selectTypeDate: ",  selectTypeDate, "selectTypeBy: ",  selectTypeBy);
@@ -148,4 +195,6 @@ export class ReceptionProductsService {
 
     return formattedDate
   }
+
+  
 }

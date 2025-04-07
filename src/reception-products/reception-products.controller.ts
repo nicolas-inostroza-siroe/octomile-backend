@@ -7,27 +7,16 @@ import { UpdateReceptionProductDto } from './dto/update-reception-product.dto';
 export class ReceptionProductsController {
   constructor(private readonly receptionProductsService: ReceptionProductsService) {}
 
-  // @Post()
-  // create(@Body() createReceptionProductDto: CreateReceptionProductDto) {
-  //   return this.receptionProductsService.create(createReceptionProductDto);
-  // }
+  @Post()
+  create(@Body() createReceptionProductDto: CreateReceptionProductDto[]) {
+    return this.receptionProductsService.create(createReceptionProductDto);
+  }
 
-  
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-    //   return this.receptionProductsService.findOne(+id);
-    // }
-    
-    // @Patch(':id')
-    // update(@Param('id') id: string, @Body() updateReceptionProductDto: UpdateReceptionProductDto) {
-      //   return this.receptionProductsService.update(+id, updateReceptionProductDto);
-      // }
-      
-      // @Delete(':id')
-      // remove(@Param('id') id: string) {
-        //   return this.receptionProductsService.remove(+id);
-        // }
-        
+  @Post('single')
+  createSingle(@Body() createSingleProductDto: any) {
+    return this.receptionProductsService.createSingle(createSingleProductDto);
+  }
+
   @Get('get')
   findAll(
     @Query('pageIndex') pageIndex: string = '0',
@@ -42,6 +31,23 @@ export class ReceptionProductsController {
 
     return this.receptionProductsService.findAll(page, size, searchQuery, selectedDate, selectTypeBy, selectTypeDate);
   }
+
+  /* 
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.receptionProductsService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateReceptionProductDto: UpdateReceptionProductDto) {
+    return this.receptionProductsService.update(+id, updateReceptionProductDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.receptionProductsService.remove(+id);
+  }
+  */
 
   @Post('postExcel')
   async insertProducts(@Body() CreateReceptionProductDto: CreateReceptionProductDto[]){
