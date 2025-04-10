@@ -43,4 +43,8 @@ export class webSocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     emitProductScanned(routeId: any, updatedProduct: any) {
         this.server.to(`route-${routeId}`).emit('productScanned', updatedProduct);
     }
+
+    emitReceptionProduct(updatedProduct: any){
+        this.server.to(`reception-products`).emit('receptionProductScanned', updatedProduct);
+    }
 }

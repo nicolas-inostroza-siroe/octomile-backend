@@ -32,8 +32,8 @@ export class ReceptionProduct {
     @Column({type: 'datetime', nullable: true})
     fechaGestion: Date;
 
-    @Column({type: 'int'})
-    diasAtraso: number;
+    @Column({type: 'datetime', nullable: true})
+    fechaEscaneo: Date;
 
     @Column({type: 'varchar', nullable: true})
     origen: string;
@@ -45,7 +45,7 @@ export class ReceptionProduct {
     estado: string;
 
     @Column({type: 'varchar', nullable: true})
-    gestorId: string;
+    escaneadorId: string;
 
     @Column({type: 'varchar', nullable: true})
     destino: string;

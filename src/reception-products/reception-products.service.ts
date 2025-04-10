@@ -1,9 +1,10 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReceptionProductDto } from './dto/create-reception-product.dto';
 import { UpdateReceptionProductDto } from './dto/update-reception-product.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { ReceptionProduct } from './entities/reception-product.entity';
+import { webSocketGateway } from '../web-socket/web-socket.gateway';
 
 @Injectable()
 export class ReceptionProductsService {
@@ -12,7 +13,8 @@ export class ReceptionProductsService {
       @InjectRepository(ReceptionProduct)
       private readonly receptionProductEntity: Repository<ReceptionProduct>,
       @InjectEntityManager()
-      private readonly entityManager: EntityManager
+      private readonly entityManager: EntityManager,
+      private readonly webSocketGateway: webSocketGateway,
   ){}
   async create(createReceptionProductDto: CreateReceptionProductDto[]) {
 
@@ -22,11 +24,11 @@ export class ReceptionProductsService {
     const insertQuery = `
       INSERT INTO receptionProduct (
         guia, codigo, codigoDos, empresa, conductor, patente, 
-        fechaCreacion, fechaSalida, fechaGestion, diasAtraso, origen, 
+        fechaCreacion, fechaSalida, fechaGestion,  origen, 
         motivo, estado, lugarFisico, fechaIngreso
       ) 
       VALUES 
-      ${createReceptionProductDto.map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).join(", ")}
+      ${createReceptionProductDto.map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).join(", ")}
     `;
 
     const values = createReceptionProductDto.flatMap(dto => [
@@ -39,7 +41,6 @@ export class ReceptionProductsService {
       dto.fechaCreacion,
       dto.fechaSalida,
       dto.fechaGestion,
-      dto.diasAtraso,
       dto.origen,
       dto.motivo,
       dto.estado,
@@ -105,9 +106,11 @@ export class ReceptionProductsService {
   async findAll(page: number, size: number, searchQuery: string, selectedDate: string, selectTypeBy: string, selectTypeDate: string) {
 
     console.log("searchQuery: ", searchQuery, "selectedDate: ",  selectedDate, "selectTypeDate: ",  selectTypeDate, "selectTypeBy: ",  selectTypeBy);
+
     let query = `
-      SELECT * 
-      FROM receptionProduct
+      SELECT r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name
+      FROM receptionProduct r
+      LEFT JOIN user_octomile u ON u.id = r.escaneadorId
       WHERE 1=1
     `;
     
@@ -127,7 +130,7 @@ export class ReceptionProductsService {
       parameters.push(formattedDate[0]);
     }
   
-    query += ` ORDER BY id ASC LIMIT ? OFFSET ?`;
+    query += ` ORDER BY r.id ASC LIMIT ? OFFSET ?`;
   
     parameters.push(size);
     parameters.push(page * size);
@@ -163,18 +166,154 @@ export class ReceptionProductsService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} receptionProduct`;
+  async findDestination(page: number, size: number, searchQuery: string, selectedDate: string, selectTypeBy: string, selectTypeDate: string) {
+
+    const allowed = ['empresa', 'guia', 'fechaCreacion', 'fechaSalida', 'fechaGestion', 'fechaIngreso'];
+    if (!allowed.includes(selectTypeBy) || !allowed.includes(selectTypeDate)) {
+      throw new Error('Invalid columns');
+    }
+
+    console.log("searchQuery: ", searchQuery, "selectedDate: ",  selectedDate, "selectTypeDate: ",  selectTypeDate, "selectTypeBy: ",  selectTypeBy);
+
+    let query = `
+      SELECT r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name
+      FROM receptionProduct r
+      LEFT JOIN user_octomile u ON u.id = r.escaneadorId
+      WHERE estado <> 'Por Recepcionar'
+    `;
+    
+    const parameters: any[] = [];
+    
+    if (searchQuery) {
+      query += ` AND ${selectTypeBy} LIKE ?`;
+      parameters.push(`%${searchQuery}%`);
+    }
+  
+    if (selectedDate) {
+      let formattedDate = null;
+      const date = new Date(selectedDate);
+      formattedDate = date.toISOString().slice(0, 19).replace("T", " ").split(" ");
+
+      query += ` AND ${selectTypeDate} = ?`;
+      parameters.push(formattedDate[0]);
+    }
+  
+    query += ` ORDER BY r.id ASC LIMIT ? OFFSET ?`;
+  
+    parameters.push(size);
+    parameters.push(page * size);
+  
+    const products = await this.entityManager.query(query, parameters);
+  
+    let countQuery = `
+      SELECT COUNT(*) as count
+      FROM receptionProduct
+      WHERE estado <> 'Por Recepcionar'
+    `;
+  
+    const countParams: any[] = [];
+    if (searchQuery) {
+      countQuery += ` AND r.${selectTypeBy} LIKE ?`;
+      countParams.push(`%${searchQuery}%`);
+    }
+    if (selectedDate) {
+      let formattedDate = null;
+      const date = new Date(selectedDate);
+      formattedDate = date.toISOString().slice(0, 19).replace("T", " ").split(" ");
+
+      query += ` AND ${selectTypeDate} = ?`;
+      countParams.push(formattedDate);
+    }
+  
+    const resultCount = await this.entityManager.query(countQuery, countParams);
+    const total = resultCount[0]?.['count'] || 0;
+  
+    return {
+      status: HttpStatus.OK,
+      message: 'Records fetched successfully',
+      data: {
+        products,
+        total,
+        page,
+        size,
+      },
+    };
   }
 
-  update(id: number, updateReceptionProductDto: UpdateReceptionProductDto) {
-    return `This action updates a #${id} receptionProduct`;
+
+
+  async scan(codigoProducto: string, pinchadoPorId: string, pinchadoPorName: string, fecha: Date){
+
+    const query = `
+    SELECT id, estado FROM receptionProduct WHERE codigoProducto = ? 
+    `;
+
+    const res = await this.entityManager.query(query, [codigoProducto]);
+
+    if(res.length === 0){
+      return {
+        message: 'Product not exist',
+        status: HttpStatus.CONFLICT
+      }
+    }
+    if(res[0].estado != 'Por Recepcionar'){
+      return {
+        message: 'Product already scanned',
+        status: HttpStatus.CONFLICT
+      }
+    }
+
+    const query2 = `
+      UPDATE receptionProduct SET estado = 'Recepcionado', fechaEscaneo = ?,escaneadorId = ? WHERE id = ? 
+    `
+
+    const update = await this.entityManager.query(query2, [pinchadoPorId, this.nowDate(), res[0].id]);
+
+    if(!update.affectedRows && !update.rowCount) {
+      return {
+        message: 'Failed to update product',
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      };
+    }
+
+    const result = {
+      ...res[0],
+      pinchadoPor: pinchadoPorName
+    }
+
+    this.webSocketGateway.emitReceptionProduct(result);
+
+    return {
+      message: 'Product scanned',
+      status: HttpStatus.OK,
+      data: result
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} receptionProduct`;
-  }
+  async scanDIS(codigoProducto: string, pinchadoPorId: string, pinchadoPorName: string, fecha: Date){
+    const query = `
+    INSERT INTO receptionProduct (guia, estado, fechaEscaneo, escaneadorId)
+    VALUES (?,'Recepcionado manualmente',?,?)
+    `
 
+    const res = await this.entityManager.query(query, [codigoProducto, this.nowDate(), pinchadoPorId])
+
+    if(!res.affectedRows || res.affectedRows === 0) {
+      throw new NotFoundException(`Error inserting ${codigoProducto} into receptionProduct`);
+    }
+
+    const data = {
+      guia: codigoProducto
+    }
+
+    this.webSocketGateway.emitReceptionProduct(data);
+
+    return {
+      message: 'product manually scaned succesfully',
+      status: HttpStatus.OK,
+      data: data
+    }
+  }
 
   nowDate(){
     const now = new Date();

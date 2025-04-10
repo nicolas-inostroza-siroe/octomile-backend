@@ -32,25 +32,33 @@ export class ReceptionProductsController {
     return this.receptionProductsService.findAll(page, size, searchQuery, selectedDate, selectTypeBy, selectTypeDate);
   }
 
-  /* 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.receptionProductsService.findOne(+id);
-  }
+  @Get('get_destination')
+  findDestination(
+    @Query('pageIndex') pageIndex: string = '0',
+    @Query('pageSize') pageSize: string = '10',
+    @Query('searchQuery') searchQuery: string = '',
+    @Query('selectedDate') selectedDate: string = '',
+    @Query('selectTypeBy') selectTypeBy: string = '',
+    @Query('selectTypeDate') selectTypeDate: string = ''
+  ) {
+    const page = parseInt(pageIndex);
+    const size = parseInt(pageSize);
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReceptionProductDto: UpdateReceptionProductDto) {
-    return this.receptionProductsService.update(+id, updateReceptionProductDto);
+    return this.receptionProductsService.findDestination(page, size, searchQuery, selectedDate, selectTypeBy, selectTypeDate);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.receptionProductsService.remove(+id);
-  }
-  */
 
   @Post('postExcel')
   async insertProducts(@Body() CreateReceptionProductDto: CreateReceptionProductDto[]){
     return this.receptionProductsService.create(CreateReceptionProductDto);
+  }
+
+  @Post('scan')
+  async scanProduct(
+    @Body('codigoProducto') codigoProducto: string, 
+    @Body('pinchadoPorId') pinchadoPorId: string,
+    @Body('pinchadoPorName') pinchadoPorName: string,
+    @Body('fecha') fecha: Date
+  ){
+    return this.receptionProductsService.scan(codigoProducto, pinchadoPorId, pinchadoPorName, fecha)
   }
 }
