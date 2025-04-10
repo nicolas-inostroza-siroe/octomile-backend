@@ -130,7 +130,7 @@ export class ReceptionProductsService {
       parameters.push(formattedDate[0]);
     }
   
-    query += ` ORDER BY r.id ASC LIMIT ? OFFSET ?`;
+    query += ` ORDER BY r.id DESC LIMIT ? OFFSET ?`;
   
     parameters.push(size);
     parameters.push(page * size);
@@ -168,7 +168,7 @@ export class ReceptionProductsService {
 
   async findDestination(page: number, size: number, searchQuery: string, selectedDate: string, selectTypeBy: string, selectTypeDate: string) {
 
-    const allowed = ['empresa', 'guia', 'fechaCreacion', 'fechaSalida', 'fechaGestion', 'fechaIngreso'];
+    const allowed = ['empresa', 'guia', 'fechaCreacion', 'fechaSalida', 'fechaGestion', 'fechaIngreso', ''];
     if (!allowed.includes(selectTypeBy) || !allowed.includes(selectTypeDate)) {
       throw new Error('Invalid columns');
     }
@@ -198,7 +198,7 @@ export class ReceptionProductsService {
       parameters.push(formattedDate[0]);
     }
   
-    query += ` ORDER BY r.id ASC LIMIT ? OFFSET ?`;
+    query += ` ORDER BY r.fechaEscaneo DESC LIMIT ? OFFSET ?`;
   
     parameters.push(size);
     parameters.push(page * size);
@@ -245,7 +245,7 @@ export class ReceptionProductsService {
   async scan(codigoProducto: string, pinchadoPorId: string, pinchadoPorName: string, fecha: Date){
 
     const query = `
-    SELECT id, estado FROM receptionProduct WHERE codigoProducto = ? 
+    SELECT id, estado, conductor, motivo FROM receptionProduct WHERE guia = ? 
     `;
 
     const res = await this.entityManager.query(query, [codigoProducto]);
@@ -267,7 +267,7 @@ export class ReceptionProductsService {
       UPDATE receptionProduct SET estado = 'Recepcionado', fechaEscaneo = ?,escaneadorId = ? WHERE id = ? 
     `
 
-    const update = await this.entityManager.query(query2, [pinchadoPorId, this.nowDate(), res[0].id]);
+    const update = await this.entityManager.query(query2, [this.nowDate(), pinchadoPorId, res[0].id]);
 
     if(!update.affectedRows && !update.rowCount) {
       return {
@@ -278,7 +278,8 @@ export class ReceptionProductsService {
 
     const result = {
       ...res[0],
-      pinchadoPor: pinchadoPorName
+      pinchadoPor: pinchadoPorName,
+      estadoFinal: 'Recepcionado'
     }
 
     this.webSocketGateway.emitReceptionProduct(result);
@@ -303,7 +304,11 @@ export class ReceptionProductsService {
     }
 
     const data = {
-      guia: codigoProducto
+      guia: codigoProducto,
+      pinchadoPor: pinchadoPorName,
+      estadoFinal: 'Recepcionado manualmente',
+      conductor: '',
+      motivo: ''
     }
 
     this.webSocketGateway.emitReceptionProduct(data);
