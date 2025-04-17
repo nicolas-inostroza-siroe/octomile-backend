@@ -173,12 +173,11 @@ export class ReceptionProductsService {
       throw new Error('Invalid columns');
     }
 
-    console.log("searchQuery: ", searchQuery, "selectedDate: ",  selectedDate, "selectTypeDate: ",  selectTypeDate, "selectTypeBy: ",  selectTypeBy);
-
     let query = `
-      SELECT r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name
+      SELECT r.id, r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name, r.fechaDestino, r.destino, u2.fullName gestorDestino
       FROM receptionProduct r
       LEFT JOIN user_octomile u ON u.id = r.escaneadorId
+      LEFT JOIN user_octomile u2 ON u2.id = r.gestorDestinoId
       WHERE estado <> 'Por Recepcionar'
     `;
     
@@ -276,13 +275,23 @@ export class ReceptionProductsService {
       };
     }
 
+    const countQuery = `
+      SELECT COUNT(*) as faltante
+      FROM receptionProduct
+      WHERE conductor = ? AND estado = 'Por Recepcionar'
+    `
+
+    const faltantes = await this.entityManager.query(countQuery, [res[0].conductor]);
+
+
     const result = {
       ...res[0],
       pinchadoPor: pinchadoPorName,
-      estadoFinal: 'Recepcionado'
+      estadoFinal: 'Recepcionado',
+      faltantes: faltantes[0].faltante
     }
 
-    this.webSocketGateway.emitReceptionProduct(result);
+    this.webSocketGateway.emitReceptionProduct(1, result);
 
     return {
       message: 'Product scanned',
@@ -291,13 +300,15 @@ export class ReceptionProductsService {
     }
   }
 
-  async scanDIS(codigoProducto: string, pinchadoPorId: string, pinchadoPorName: string, fecha: Date){
+  async scanDIS(codigoProducto: string, pinchadoPorId: string, pinchadoPorName: string, origen: string){
+
+    const date = this.nowDate();
     const query = `
-    INSERT INTO receptionProduct (guia, estado, fechaEscaneo, escaneadorId)
-    VALUES (?,'Recepcionado manualmente',?,?)
+    INSERT INTO receptionProduct (guia, estado, fechaIngreso, fechaEscaneo, escaneadorId, origen)
+    VALUES (?,'Recepcionado manualmente', ?, ?, ?, ?)
     `
 
-    const res = await this.entityManager.query(query, [codigoProducto, this.nowDate(), pinchadoPorId])
+    const res = await this.entityManager.query(query, [codigoProducto, date, date, pinchadoPorId])
 
     if(!res.affectedRows || res.affectedRows === 0) {
       throw new NotFoundException(`Error inserting ${codigoProducto} into receptionProduct`);
@@ -307,16 +318,37 @@ export class ReceptionProductsService {
       guia: codigoProducto,
       pinchadoPor: pinchadoPorName,
       estadoFinal: 'Recepcionado manualmente',
-      conductor: '',
-      motivo: ''
+      conductor: '---',
+      motivo: '---',
+      faltantes: '---'
     }
 
-    this.webSocketGateway.emitReceptionProduct(data);
+    this.webSocketGateway.emitReceptionProduct(1, data);
 
     return {
       message: 'product manually scaned succesfully',
       status: HttpStatus.OK,
       data: data
+    }
+  }
+
+  async newDestination(id: string, newDestination: string, userId: string){
+    const query = `
+      UPDATE receptionProduct SET destino = ?, gestorDestinoId = ?, fechaDestino = ? WHERE id = ?
+    `
+
+    const result = await this.entityManager.query(query, [newDestination, userId, this.nowDate(), id])
+
+    if(!result.affectedRows && !result.rowCount){
+      return {
+        message: 'Failed to update product',
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      }
+    }
+
+    return {
+      message: 'Destination Update succesfully',
+      status: HttpStatus.OK
     }
   }
 

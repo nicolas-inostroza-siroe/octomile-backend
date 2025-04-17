@@ -61,4 +61,23 @@ export class ReceptionProductsController {
   ){
     return this.receptionProductsService.scan(codigoProducto, pinchadoPorId, pinchadoPorName, fecha)
   }
+
+  @Post('scanDIS')
+  async scanProductDIS(
+    @Body('codigoProducto') codigoProducto: string, 
+    @Body('pinchadoPorId') pinchadoPorId: string,
+    @Body('pinchadoPorName') pinchadoPorName: string,
+    @Body('origen') origen: string
+  ){
+    return this.receptionProductsService.scanDIS(codigoProducto, pinchadoPorId, pinchadoPorName, origen)
+  }
+
+  @Post('newDestination')
+  async newDestination(
+    @Body('id') id: string,
+    @Body('newDestination') newDestination: string,
+    @Body('userId') userId: string
+  ){
+    return this.receptionProductsService.newDestination(id, newDestination, userId)
+  }
 }

@@ -32,9 +32,6 @@ export class ReceptionProduct {
     @Column({type: 'datetime', nullable: true})
     fechaGestion: Date;
 
-    @Column({type: 'datetime', nullable: true})
-    fechaEscaneo: Date;
-
     @Column({type: 'varchar', nullable: true})
     origen: string;
 
@@ -47,16 +44,24 @@ export class ReceptionProduct {
     @Column({type: 'varchar', nullable: true})
     escaneadorId: string;
 
-    @Column({type: 'varchar', nullable: true})
-    destino: string;
-
+    @Column({type: 'datetime', nullable: true})
+    fechaEscaneo: Date;
+    
     @Column({type: 'text', nullable: true})
     lugarFisico: string;
-
+    
     @Column({type: 'varchar', nullable: true})
     estadoPorGestor: string;
-
+    
     @Column({type: 'datetime', nullable: true})
     fechaIngreso: Date;
 
+    @Column({type: 'varchar', nullable: true})
+    gestorDestinoId: string;
+    
+    @Column({type: 'datetime', nullable: true})
+    fechaDestino: Date;
+    
+    @Column({type: 'varchar', nullable: true})
+    destino: string;
 }
