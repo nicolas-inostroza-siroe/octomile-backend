@@ -23,7 +23,7 @@ export class ReceptionProductsService {
 
     const insertQuery = `
       INSERT INTO receptionProduct (
-        guia, codigo, codigoDos, empresa, conductor, patente, 
+        guia, codigo, codigoDos, referenceId,conductor,vehiculo,titulo,direccion,eta,personaResponsable,tiempoEstimado,tiempoReal,avance,retraso,latitud,longitud,checkoutLatitud,checkoutlongitud,nota,nombreContacto,telefonoContacto,correoContacto,rutaId,origenId,documento,fotografiaFachada,pais,comercio,observacion empresa, conductor, patente, 
         fechaCreacion, fechaSalida, fechaGestion,  origen, 
         motivo, estado, lugarFisico, fechaIngreso
       ) 
@@ -307,8 +307,7 @@ export class ReceptionProductsService {
     INSERT INTO receptionProduct (guia, estado, fechaIngreso, fechaEscaneo, escaneadorId, origen)
     VALUES (?,'Recepcionado manualmente', ?, ?, ?, ?)
     `
-
-    const res = await this.entityManager.query(query, [codigoProducto, date, date, pinchadoPorId])
+    const res = await this.entityManager.query(query, [codigoProducto, date, date, pinchadoPorId, origen])
 
     if(!res.affectedRows || res.affectedRows === 0) {
       throw new NotFoundException(`Error inserting ${codigoProducto} into receptionProduct`);
