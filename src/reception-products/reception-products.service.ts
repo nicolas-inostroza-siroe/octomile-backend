@@ -18,43 +18,87 @@ export class ReceptionProductsService {
   ){}
   async create(createReceptionProductDto: CreateReceptionProductDto[]) {
 
+    const nowDate = this.nowDate();
+  
+    try {
+      await this.entityManager.transaction(async manager => {
+        for (const dto of createReceptionProductDto) {
+          const [row] = await manager.query(
+            'SELECT id FROM receptionProduct WHERE guia = ? LIMIT 1',
+            [dto.trackingID]
+          );
+  
+          const originalId = row?.id || null;
+  
+          const insertQuery = `
+            INSERT INTO receptionProduct (
+              guia, codigo, codigoDos, trackingId, referenceId, conductor, vehiculo, titulo, direccion, eta, personaResponsable, tiempoEstimado, tiempoReal,
+              avance, retraso, latitud, longitud, checkoutLatitud, checkoutlongitud, nota, nombreContacto, telefonoContacto, correoContacto, rutaId, 
+              origenId, documento, fotografiaFachada, pais, comercio, observacion, fechaCreacion, fechaSalida, fechaGestion, origen, 
+              motivo, estado, lugarFisico, fechaIngreso, repetido
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+  
+          const values = [
+            dto.trackingID,
+            dto.trackingID,
+            dto.trackingID,
+            dto.trackingID,
+            dto.referenceId,
+            dto.driver,
+            dto.vehicle,
+            dto.title,
+            dto.address,
+            dto.eTA,
+            dto.responsiblePerson,
+            dto.estimatedServiceTime,
+            dto.realServiceTime,
+            dto.advance,
+            dto.delay,
+            dto.latitude,
+            dto.longitude,
+            dto.checkoutLatitude,
+            dto.checkoutLongitude,
+            dto.notes,
+            dto.contactName,
+            dto.contactPhone,
+            dto.contactEmail,
+            dto.routeID,
+            dto.idOrigen,
+            dto.documento,
+            dto.fotografíaFachada,
+            dto.country,
+            dto.comercio,
+            dto.comments,
+            dto.plannedDate,
+            dto.checkin,
+            dto.checkoutFechaGestión,
+            'Ultima Milla',
+            dto.comments,
+            'Por Recepcionar',
+            dto.comments,
+            nowDate,
+            originalId
+          ];
 
-    const nowDate = this.nowDate()
-
-    const insertQuery = `
-      INSERT INTO receptionProduct (
-        guia, codigo, codigoDos, referenceId,conductor,vehiculo,titulo,direccion,eta,personaResponsable,tiempoEstimado,tiempoReal,avance,retraso,latitud,longitud,checkoutLatitud,checkoutlongitud,nota,nombreContacto,telefonoContacto,correoContacto,rutaId,origenId,documento,fotografiaFachada,pais,comercio,observacion empresa, conductor, patente, 
-        fechaCreacion, fechaSalida, fechaGestion,  origen, 
-        motivo, estado, lugarFisico, fechaIngreso
-      ) 
-      VALUES 
-      ${createReceptionProductDto.map(() => `(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).join(", ")}
-    `;
-
-    const values = createReceptionProductDto.flatMap(dto => [
-      dto.trackingID,
-      dto.codigo,
-      dto.codigoDos,
-      dto.empresa,
-      dto.conductor,
-      dto.patente,
-      dto.fechaCreacion,
-      dto.fechaSalida,
-      dto.fechaGestion,
-      dto.origen,
-      dto.motivo,
-      dto.estado,
-      dto.lugarFisico,
-      nowDate
-    ]);
- 
-    await this.entityManager.query(insertQuery, values);
-
-    return {
+  
+          await manager.query(insertQuery, values);
+        }
+      });
+  
+      return {
         status: HttpStatus.OK,
         message: 'Records inserted successfully',
-    };
+      };
+    } catch (error) {
+      console.error('❌ Error al insertar productos:', error);
+      return {
+        status: HttpStatus.CONFLICT,
+        message: 'Error during insertion',
+      };
+    }
   }
+  
 
   async createSingle(createSingleProductDto: any) {
     const nowDate = this.nowDate();
@@ -103,21 +147,27 @@ export class ReceptionProductsService {
     };
   }
 
-  async findAll(page: number, size: number, searchQuery: string, selectedDate: string, selectTypeBy: string, selectTypeDate: string) {
+  async findAll(page: number, size: number, searchQuery: string, selectedDate: string, selectStatus: string, selectTypeDate: string) {
 
-    console.log("searchQuery: ", searchQuery, "selectedDate: ",  selectedDate, "selectTypeDate: ",  selectTypeDate, "selectTypeBy: ",  selectTypeBy);
+    console.log("searchQuery: ", searchQuery, "selectedDate: ",  selectedDate, "selectTypeDate: ",  selectTypeDate, "selectStatus: ",  selectStatus);
 
     let query = `
-      SELECT r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name
+      SELECT r.id, r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name,
+      ( SELECT COUNT(*) FROM receptionProduct r2 WHERE r2.repetido = r.id) AS cantRepetido
       FROM receptionProduct r
       LEFT JOIN user_octomile u ON u.id = r.escaneadorId
-      WHERE 1=1
+      WHERE repetido IS NULL
     `;
     
     const parameters: any[] = [];
-    
+  
+    if(selectStatus != ''){
+      query += ` AND estado = ?`;
+      parameters.push(`${selectStatus}`);
+    }
+
     if (searchQuery) {
-      query += ` AND ${selectTypeBy} LIKE ?`;
+      query += ` AND guia LIKE ?`;
       parameters.push(`%${searchQuery}%`);
     }
   
@@ -126,7 +176,7 @@ export class ReceptionProductsService {
       const date = new Date(selectedDate);
       formattedDate = date.toISOString().slice(0, 19).replace("T", " ").split(" ");
 
-      query += ` AND ${selectTypeDate} = ?`;
+      query += ` AND DATE(${selectTypeDate}) = ?`;
       parameters.push(formattedDate[0]);
     }
   
@@ -140,15 +190,19 @@ export class ReceptionProductsService {
     let countQuery = `
       SELECT COUNT(*) as count
       FROM receptionProduct
-      WHERE 1=1
+      WHERE repetido IS NULL
     `;
+
+    if(selectStatus != ''){
+      countQuery += ` AND estado = ?`;
+    }
   
     if (searchQuery) {
-      countQuery += ` AND ${selectTypeBy} LIKE ?`;
+      countQuery += ` AND guia LIKE ?`;
     }
   
     if (selectedDate) {      
-      countQuery += ` AND ${selectTypeDate} = ?`;
+      countQuery += ` AND DATE(${selectTypeDate}) = ?`;
     }
   
     const resultCount = await this.entityManager.query(countQuery, parameters);
@@ -166,9 +220,11 @@ export class ReceptionProductsService {
     };
   }
 
-  async findDestination(page: number, size: number, searchQuery: string, selectedDate: string, selectTypeBy: string, selectTypeDate: string) {
+  async findDestination(page: number, size: number, searchQuery: string, selectedDate: string, selectTypeBy: string, selectTypeDate: string, selectStatus: string) {
 
-    const allowed = ['empresa', 'guia', 'fechaCreacion', 'fechaSalida', 'fechaGestion', 'fechaIngreso', ''];
+    console.log("searchQuery: ", searchQuery, "selectedDate: ",  selectedDate, "selectTypeDate: ",  selectTypeDate, "selectStatus: ",  selectStatus, "selectTypeBy: ", selectTypeBy);
+
+    const allowed = ['guia', 'fechaEscaneo', ''];
     if (!allowed.includes(selectTypeBy) || !allowed.includes(selectTypeDate)) {
       throw new Error('Invalid columns');
     }
@@ -178,10 +234,15 @@ export class ReceptionProductsService {
       FROM receptionProduct r
       LEFT JOIN user_octomile u ON u.id = r.escaneadorId
       LEFT JOIN user_octomile u2 ON u2.id = r.gestorDestinoId
-      WHERE estado <> 'Por Recepcionar'
+      WHERE estado <> 'Por Recepcionar' AND repetido IS NULL
     `;
     
     const parameters: any[] = [];
+
+    if(selectStatus != ''){
+      query += ` AND estado = ?`;
+      parameters.push(`${selectStatus}`);
+    }
     
     if (searchQuery) {
       query += ` AND ${selectTypeBy} LIKE ?`;
@@ -193,7 +254,7 @@ export class ReceptionProductsService {
       const date = new Date(selectedDate);
       formattedDate = date.toISOString().slice(0, 19).replace("T", " ").split(" ");
 
-      query += ` AND ${selectTypeDate} = ?`;
+      query += ` AND DATE(${selectTypeDate}) = ?`;
       parameters.push(formattedDate[0]);
     }
   
@@ -207,24 +268,22 @@ export class ReceptionProductsService {
     let countQuery = `
       SELECT COUNT(*) as count
       FROM receptionProduct
-      WHERE estado <> 'Por Recepcionar'
+      WHERE estado <> 'Por Recepcionar' AND repetido IS NULL
     `;
   
-    const countParams: any[] = [];
+
+    if(selectStatus != ''){
+      countQuery += `AND estado = ?`;
+    }
+
     if (searchQuery) {
-      countQuery += ` AND r.${selectTypeBy} LIKE ?`;
-      countParams.push(`%${searchQuery}%`);
+      countQuery += ` AND ${selectTypeBy} LIKE ?`;
     }
     if (selectedDate) {
-      let formattedDate = null;
-      const date = new Date(selectedDate);
-      formattedDate = date.toISOString().slice(0, 19).replace("T", " ").split(" ");
-
-      query += ` AND ${selectTypeDate} = ?`;
-      countParams.push(formattedDate);
+      countQuery += ` AND DATE(${selectTypeDate}) = ?`;
     }
   
-    const resultCount = await this.entityManager.query(countQuery, countParams);
+    const resultCount = await this.entityManager.query(countQuery, parameters);
     const total = resultCount[0]?.['count'] || 0;
   
     return {
@@ -239,12 +298,10 @@ export class ReceptionProductsService {
     };
   }
 
-
-
   async scan(codigoProducto: string, pinchadoPorId: string, pinchadoPorName: string, fecha: Date){
 
     const query = `
-    SELECT id, estado, conductor, motivo FROM receptionProduct WHERE guia = ? 
+    SELECT id, estado, conductor, motivo FROM receptionProduct WHERE guia = ? AND repetido IS NULL
     `;
 
     const res = await this.entityManager.query(query, [codigoProducto]);
@@ -278,7 +335,7 @@ export class ReceptionProductsService {
     const countQuery = `
       SELECT COUNT(*) as faltante
       FROM receptionProduct
-      WHERE conductor = ? AND estado = 'Por Recepcionar'
+      WHERE conductor = ? AND estado = 'Por Recepcionar' AND repetido IS NULL
     `
 
     const faltantes = await this.entityManager.query(countQuery, [res[0].conductor]);
@@ -351,6 +408,52 @@ export class ReceptionProductsService {
     }
   }
 
+  async searchDuplicate(id:string){
+    const query = `
+      SELECT r.id, r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name, r.fechaDestino, r.destino, u2.fullName gestorDestino
+      FROM receptionProduct r
+      LEFT JOIN user_octomile u ON u.id = r.escaneadorId
+      LEFT JOIN user_octomile u2 ON u2.id = r.gestorDestinoId
+      WHERE r.repetido = ?
+    `
+
+    const result = await this.entityManager.query(query, [id])
+    if(!result){
+      return {
+        message: 'Failed to fetch duplicate',
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      }
+    }
+
+    return {
+      message: 'Duplicate retrieved succesfully',
+      status: HttpStatus.OK,
+      data: result
+    }
+  }
+
+  async getVoucher(init: Date, end: Date, driver: string){
+    const query = `
+    SELECT id, guia, fechaEscaneo, estado
+    FROM receptionProduct
+    WHERE conductor = ? AND fechaIngreso >= ? AND FechaIngreso <= ?
+    `
+    const result = await this.entityManager.query(query, [driver, `${this.toSqlDate(init)} 00:00:00`, `${this.toSqlDate(end)} 23:59:59`])
+
+    if (!result) {
+      return {
+        message: 'Failed to retrieve data',
+        status: HttpStatus.NOT_FOUND,
+      };
+    }
+
+    return {
+      message: 'data vouched retrieved succesfully',
+      status: HttpStatus.OK,
+      data: result
+    }
+  }
+
   nowDate(){
     const now = new Date();
     const fechaFormateada = new Date().toLocaleString('es-CL', {
@@ -369,7 +472,10 @@ export class ReceptionProductsService {
     const formattedDate = `${año}-${mes}-${dia} ${hora}:${minutos}:${segundos}.${milisegundos}`;
 
     return formattedDate
-  }
+  } 
 
-  
+  toSqlDate(input: string | Date): string {
+    const date = new Date(input);
+    return date.toISOString().split('T')[0];
+  }
 }

@@ -23,13 +23,13 @@ export class ReceptionProductsController {
     @Query('pageSize') pageSize: string = '10',
     @Query('searchQuery') searchQuery: string = '',
     @Query('selectedDate') selectedDate: string = '',
-    @Query('selectTypeBy') selectTypeBy: string = '',
+    @Query('selectStatus') selectStatus: string = '',
     @Query('selectTypeDate') selectTypeDate: string = ''
   ) {
     const page = parseInt(pageIndex);
     const size = parseInt(pageSize);
 
-    return this.receptionProductsService.findAll(page, size, searchQuery, selectedDate, selectTypeBy, selectTypeDate);
+    return this.receptionProductsService.findAll(page, size, searchQuery, selectedDate, selectStatus, selectTypeDate);
   }
 
   @Get('get_destination')
@@ -39,12 +39,13 @@ export class ReceptionProductsController {
     @Query('searchQuery') searchQuery: string = '',
     @Query('selectedDate') selectedDate: string = '',
     @Query('selectTypeBy') selectTypeBy: string = '',
-    @Query('selectTypeDate') selectTypeDate: string = ''
+    @Query('selectTypeDate') selectTypeDate: string = '',
+    @Query('selectStatus') selectStatus: string = ''
   ) {
     const page = parseInt(pageIndex);
     const size = parseInt(pageSize);
 
-    return this.receptionProductsService.findDestination(page, size, searchQuery, selectedDate, selectTypeBy, selectTypeDate);
+    return this.receptionProductsService.findDestination(page, size, searchQuery, selectedDate, selectTypeBy, selectTypeDate, selectStatus);
   }
 
   @Post('postExcel')
@@ -79,5 +80,21 @@ export class ReceptionProductsController {
     @Body('userId') userId: string
   ){
     return this.receptionProductsService.newDestination(id, newDestination, userId)
+  }
+
+  @Get('searchDuplicate')
+  async searchDuplicate(
+    @Query('id') id:string
+  ){
+    return this.receptionProductsService.searchDuplicate(id);
+  }
+
+  @Get("dataVoucher")
+  async getVoucher(
+    @Query('init') init: Date,
+    @Query('end') end: Date,
+    @Query('driver') driver: string
+  ){
+    return this.receptionProductsService.getVoucher(init, end, driver)
   }
 }

@@ -15,6 +15,9 @@ export class ReceptionProduct {
     codigoDos: string;
     
     @Column({type: 'varchar', nullable: true})
+    trackingId: string;
+
+    @Column({type: 'varchar', nullable: true})
     referenceId: string;
     
     @Column({type: 'varchar', nullable: true})
@@ -29,7 +32,7 @@ export class ReceptionProduct {
     @Column({type: 'varchar', nullable: true})
     direccion: string;
     
-    @Column({type: 'date', nullable: true})
+    @Column({type: 'varchar', nullable: true})
     eta: Date;
     
     @Column({type: 'varchar', nullable: true})
@@ -53,7 +56,7 @@ export class ReceptionProduct {
     checkoutLatitud: string;    
     @Column({type: 'varchar', nullable: true})
     checkoutLongitud: string;    
-    @Column({type: 'varchar', nullable: true})
+    @Column({type: 'text', nullable: true})
     nota: string;    
     @Column({type: 'varchar', nullable: true})
     nombreContacto: string;    
@@ -68,7 +71,7 @@ export class ReceptionProduct {
     origenId: string;
     @Column({type: 'varchar', nullable: true})
     documento: string;
-    @Column({type: 'varchar', nullable: true})
+    @Column({type: 'text', nullable: true})
     fotografiaFachada: string;
     @Column({type: 'varchar', nullable: true})
     pais: string;
@@ -91,8 +94,6 @@ export class ReceptionProduct {
     
     @Column({type: 'text', nullable: true})
     observacion: string;
-
-
 
     @Column({type: 'varchar', nullable: true})
     estado: string;
@@ -120,4 +121,7 @@ export class ReceptionProduct {
     
     @Column({type: 'varchar', nullable: true})
     destino: string;
+    
+    @Column({type: 'varchar', nullable: true})
+    repetido: string;
 }

@@ -222,7 +222,7 @@ export class DriversService {
     async findActiveDrivers() {
 
         const query = `
-            SELECT d.id, d.nombre_apellido, d.empresa, d.usuario, d.tipo, v.id_vehiculo, v.patente, v.tipo_vehiculo, v.marca, v.modelo
+            SELECT d.id, d.nombre_apellido, d.empresa, d.usuario, d.rut, d.tipo, v.id_vehiculo, v.patente, v.tipo_vehiculo, v.marca, v.modelo
             FROM drivers d
             LEFT JOIN vehiculos v ON v.patente = d.patente 
             WHERE status = 'active' 

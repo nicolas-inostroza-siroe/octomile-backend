@@ -1,16 +1,41 @@
 export class CreateReceptionProductDto {
-    trackingID: string;
-    codigo: string;
-    codigoDos: string;
-    empresa: string;
-    conductor: string;
-    patente: string;
-    fechaCreacion: string;
-    fechaSalida: string;
-    fechaGestion: string;
-    diasAtraso: number;
-    origen: string;
-    motivo: string;
-    estado: string;
-    lugarFisico: string;
-}
+  accountID: number;
+  accountName: string;
+  address: string;
+  advance: number;
+  checkoutFechaGestión: string;
+  checkoutLatitude: number;
+  checkoutLongitude: number;
+  comercio: string;
+  comments: string;
+  contactEmail: string;
+  contactName: string;
+  contactPhone: string;
+  country: string;
+  delay: number;
+  driver: string;
+  eTA: number;
+  endOfTimeWindow1: number;
+  estimatedServiceTime: number;
+  fotografíaFachada: string;
+  latitude: number;
+  load2: number;
+  load3: number;
+  longitude: number;
+  notes: string;
+  observation: string;
+  plannedDate: string;
+  realServiceTime: number;
+  referenceId: string;
+  responsiblePerson: string;
+  routeID: string;
+  startOfTimeWindow1: number;
+  status: string;
+  title: string;
+  trackingID: string;
+  vehicle: string;
+  idOrigen: string;
+  documento: string;
+  checkin: string;
+  }
+  
