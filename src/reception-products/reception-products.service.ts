@@ -17,30 +17,35 @@ export class ReceptionProductsService {
       private readonly webSocketGateway: webSocketGateway,
   ){}
   async create(createReceptionProductDto: CreateReceptionProductDto[]) {
-
     const nowDate = this.nowDate();
   
     try {
       await this.entityManager.transaction(async manager => {
+  
+        const trackingIds = createReceptionProductDto.map(dto => dto.trackingID);
+        const existingRecords = await manager.query(
+          `SELECT id, guia FROM receptionProduct WHERE guia IN (?)`,
+          [trackingIds]
+        );
+  
+        console.log(existingRecords);
 
-        for (const dto of createReceptionProductDto) {
-          const [row] = await manager.query(
-            'SELECT id FROM receptionProduct WHERE guia = ? LIMIT 1',
-            [dto.trackingID]
-          );
+        const existingGuiaMap = new Map(existingRecords.map((row: any) => [row.guia, row.id]));
   
-          const originalId = row?.id || null;
+        const insertQuery = `
+          INSERT INTO receptionProduct (
+            guia, codigo, codigoDos, trackingId, referenceId, conductor, vehiculo, titulo, direccion, eta, personaResponsable, tiempoEstimado, tiempoReal,
+            avance, retraso, latitud, longitud, checkoutLatitud, checkoutlongitud, nota, nombreContacto, telefonoContacto, correoContacto, rutaId, 
+            origenId, documento, fotografiaFachada, pais, comercio, observacion, fechaCreacion, fechaSalida, fechaGestion, origen, 
+            motivo, estado, lugarFisico, fechaIngreso, repetido
+          ) VALUES 
+          ${createReceptionProductDto.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(',')}
+        `;
   
-          const insertQuery = `
-            INSERT INTO receptionProduct (
-              guia, codigo, codigoDos, trackingId, referenceId, conductor, vehiculo, titulo, direccion, eta, personaResponsable, tiempoEstimado, tiempoReal,
-              avance, retraso, latitud, longitud, checkoutLatitud, checkoutlongitud, nota, nombreContacto, telefonoContacto, correoContacto, rutaId, 
-              origenId, documento, fotografiaFachada, pais, comercio, observacion, fechaCreacion, fechaSalida, fechaGestion, origen, 
-              motivo, estado, lugarFisico, fechaIngreso, repetido
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `;
+        const values = createReceptionProductDto.flatMap(dto => {
+          const originalId = existingGuiaMap.get(dto.trackingID) || null;
   
-          const values = [
+          return [
             dto.trackingID,
             dto.trackingID,
             dto.trackingID,
@@ -81,10 +86,10 @@ export class ReceptionProductsService {
             nowDate,
             originalId
           ];
-
+        });
   
-          await manager.query(insertQuery, values);
-        }
+        await manager.query(insertQuery, values);
+  
       });
   
       return {
@@ -92,13 +97,14 @@ export class ReceptionProductsService {
         message: 'Records inserted successfully',
       };
     } catch (error) {
-      console.error('❌ Error al insertar productos:', error);
+      console.error('Error al insertar productos:', error);
       return {
         status: HttpStatus.CONFLICT,
         message: 'Error during insertion',
       };
     }
   }
+  
   
 
   async createSingle(createSingleProductDto: any) {
@@ -154,9 +160,13 @@ export class ReceptionProductsService {
 
     let query = `
       SELECT r.id, r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name,
-      ( SELECT COUNT(*) FROM receptionProduct r2 WHERE r2.repetido = r.id) AS cantRepetido
+      ( SELECT COUNT(*) FROM receptionProduct r2 WHERE r2.repetido = r.id) AS cantRepetido,
+      CASE 
+        WHEN d.rut IS NULL THEN 0 ELSE 1 
+      END AS existsDriver
       FROM receptionProduct r
       LEFT JOIN user_octomile u ON u.id = r.escaneadorId
+      LEFT JOIN drivers d ON d.rut = SUBSTRING_INDEX(r.conductor, '/', -1)
       WHERE repetido IS NULL
     `;
     
@@ -231,10 +241,14 @@ export class ReceptionProductsService {
     }
 
     let query = `
-      SELECT r.id, r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name, r.fechaDestino, r.destino, u2.fullName gestorDestino
+      SELECT r.id, r.fechaIngreso, r.fechaGestion, r.fechaEscaneo, r.origen, r.guia, r.conductor, r.estado, u.fullName name, r.fechaDestino, r.destino, u2.fullName gestorDestino,
+        CASE 
+          WHEN d.rut IS NULL THEN 0 ELSE 1 
+        END AS existsDriver
       FROM receptionProduct r
       LEFT JOIN user_octomile u ON u.id = r.escaneadorId
       LEFT JOIN user_octomile u2 ON u2.id = r.gestorDestinoId
+      LEFT JOIN drivers d ON d.rut = SUBSTRING_INDEX(r.conductor, '/', -1)
       WHERE estado <> 'Por Recepcionar' AND repetido IS NULL
     `;
     
@@ -456,21 +470,26 @@ export class ReceptionProductsService {
   }
 
   async checkDrivers(data: any){
-    let result = []
-    const ruts = data.map((data: any) => data.driver.split('/')[1]);
-
-    const uniqueRuts = [...new Set(ruts)];
-    
-    const res = await this.entityManager.query(
-      `SELECT rut FROM drivers WHERE rut in ${uniqueRuts.map(() => '?').join(',')}`, uniqueRuts
-    );
-
-    
-    const exist = new Set(res.map((data: any) => data.rut ));    
-
-
-    const noExists = uniqueRuts.filter((data: any) => !exist.has(data));
-    return noExists
+    try{
+      const ruts = data.map((data: any) => data.split('/')[1]);
+      const uniqueRuts = [...new Set(ruts)];    
+      const uniqueDriver = [...new Set(data)];
+      const res = await this.entityManager.query(
+        `SELECT rut FROM drivers WHERE rut in (${uniqueRuts.map(() => '?').join(',')})`, uniqueRuts
+      );
+      const exist = new Set(res.map((data: any) => data.rut ));    
+      const noExists = uniqueDriver.filter((data: any) => !exist.has(data.split('/')[1]));
+      return {
+        message: 'checkDrivers succesfully',
+        status: HttpStatus.OK,
+        data: noExists
+      }
+    }catch(error){
+      return{
+        message: error,
+        status: HttpStatus.BAD_REQUEST,
+      }
+    }
   }
  
   nowDate(){

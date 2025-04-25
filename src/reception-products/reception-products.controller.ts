@@ -6,7 +6,6 @@ import { UpdateReceptionProductDto } from './dto/update-reception-product.dto';
 @Controller('reception-products')
 export class ReceptionProductsController {
   constructor(private readonly receptionProductsService: ReceptionProductsService) {}
-
   @Post()
   create(@Body() createReceptionProductDto: CreateReceptionProductDto[]) {
     return this.receptionProductsService.create(createReceptionProductDto);

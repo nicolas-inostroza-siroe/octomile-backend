@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('receptionProduct')
+@Index('IDX_guia', ['guia'])
 export class ReceptionProduct {
     @PrimaryGeneratedColumn()
     id:number;
