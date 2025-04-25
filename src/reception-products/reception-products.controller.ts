@@ -48,6 +48,11 @@ export class ReceptionProductsController {
     return this.receptionProductsService.findDestination(page, size, searchQuery, selectedDate, selectTypeBy, selectTypeDate, selectStatus);
   }
 
+  @Post('checkDrivers')
+  async checkDrivers(@Body() drivers: string[]){
+    return this.receptionProductsService.checkDrivers(drivers);
+  }
+
   @Post('postExcel')
   async insertProducts(@Body() CreateReceptionProductDto: CreateReceptionProductDto[]){
     return this.receptionProductsService.create(CreateReceptionProductDto);

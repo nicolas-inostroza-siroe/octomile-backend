@@ -22,6 +22,7 @@ export class ReceptionProductsService {
   
     try {
       await this.entityManager.transaction(async manager => {
+
         for (const dto of createReceptionProductDto) {
           const [row] = await manager.query(
             'SELECT id FROM receptionProduct WHERE guia = ? LIMIT 1',
@@ -436,7 +437,7 @@ export class ReceptionProductsService {
     const query = `
     SELECT id, guia, fechaEscaneo, estado
     FROM receptionProduct
-    WHERE conductor = ? AND fechaIngreso >= ? AND FechaIngreso <= ?
+    WHERE conductor = ? AND fechaIngreso >= ? AND FechaIngreso <= ? AND duplicado IS NULL
     `
     const result = await this.entityManager.query(query, [driver, `${this.toSqlDate(init)} 00:00:00`, `${this.toSqlDate(end)} 23:59:59`])
 
@@ -454,6 +455,24 @@ export class ReceptionProductsService {
     }
   }
 
+  async checkDrivers(data: any){
+    let result = []
+    const ruts = data.map((data: any) => data.driver.split('/')[1]);
+
+    const uniqueRuts = [...new Set(ruts)];
+    
+    const res = await this.entityManager.query(
+      `SELECT rut FROM drivers WHERE rut in ${uniqueRuts.map(() => '?').join(',')}`, uniqueRuts
+    );
+
+    
+    const exist = new Set(res.map((data: any) => data.rut ));    
+
+
+    const noExists = uniqueRuts.filter((data: any) => !exist.has(data));
+    return noExists
+  }
+ 
   nowDate(){
     const now = new Date();
     const fechaFormateada = new Date().toLocaleString('es-CL', {
